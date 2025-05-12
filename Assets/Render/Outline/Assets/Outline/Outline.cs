@@ -10,25 +10,23 @@ public class Outline : MonoBehaviour
     public float fadeSpeed = 5;
     public float highlightSpeed = 10;
     public float maxSize = 4;
+
     private void Awake()
     {
         tag = "Untagged";
         m_outlineVolume = FindObjectOfType<OutlineQuickVolume>();
         m_defaultSize = m_outlineVolume.size;
     }
-    RaycastHit hit;
-    private void OnMouseEnter()
-    {
-            tag = "Outline";
-            StartCoroutine(FadeInColor());
-    }
-    private void OnMouseDown()
-    {
-        if (IsLookingAtThisObject(out hit) && IsWithinInteractDistance(hit))
-        {
 
-            StartCoroutine(OnClickHighlihgt());
-        }
+    public void ActiveOutline()
+    {
+        tag = "Outline";
+        StartCoroutine(FadeInColor());
+    }
+
+    public void ActivatedOutline()
+    {
+        StartCoroutine(OnClickHighlihgt());
     }
 
     private void OnMouseExit()
@@ -38,18 +36,6 @@ public class Outline : MonoBehaviour
         m_outlineVolume.size = m_defaultSize;
     }
 
-
-    private bool IsLookingAtThisObject(out RaycastHit hit)
-    {
-
-        Ray ray = new Ray(Camera.main.transform.position, Camera.main.transform.forward);
-        return Physics.Raycast(ray, out hit, PlayerEntity.Instance.InteractDistance) && hit.transform == transform;
-    }
-
-    private bool IsWithinInteractDistance(RaycastHit hit)
-    {
-        return hit.distance <= PlayerEntity.Instance.InteractDistance;
-    }
     private IEnumerator FadeInColor()
     {
         m_alpha = 0;

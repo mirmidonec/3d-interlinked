@@ -1,19 +1,28 @@
 using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(Camera))]
 [DisallowMultipleComponent]
 public class PlayerInteract : MonoBehaviour
 {
+
+    [SerializeField] private Text _interactionText;
+    [SerializeField] private float _typingSpeed;
+    [SerializeField] private AudioSource _source;
+    [SerializeField] private AudioClip[] _clips;
+
+
+    private Coroutine _typingCoroutine;
     private Camera _mainCamera;
-    private IInteractable _currentInteractable;
-    public Text InteractionText;
+    private Interactable _currentInteractable;
 
     private void Awake()
     {
         _mainCamera = GetComponent<Camera>();
-        if (InteractionText != null)
-            InteractionText.gameObject.SetActive(false);
+        if (_interactionText != null)
+            _interactionText.gameObject.SetActive(false);
     }
 
     private void Update()
@@ -30,19 +39,30 @@ public class PlayerInteract : MonoBehaviour
 
     private void HandleRaycastHit(RaycastHit hit)
     {
-        IInteractable newInteractable = hit.collider.GetComponent<IInteractable>();
+        Interactable newInteractable = hit.collider.GetComponent<Interactable>();
 
         if (newInteractable != null)
         {
             if (_currentInteractable != newInteractable)
             {
-                _currentInteractable?.OnLoseFocus();
+                if (_currentInteractable != null)
+                {
+                    _currentInteractable.OnLoseFocus();
+                    _currentInteractable.OnTextChanged -= UpdateInteractionText;
+                }
+
                 _currentInteractable = newInteractable;
                 _currentInteractable.OnFocus();
-            }
 
-            if (InteractionText != null)
-                InteractionText.gameObject.SetActive(true);
+                _currentInteractable.OnTextChanged += UpdateInteractionText;
+
+                _interactionText.gameObject.SetActive(true);
+
+                if (_typingCoroutine != null)
+                    StopCoroutine(_typingCoroutine);
+
+                _typingCoroutine = StartCoroutine(TypeText(_currentInteractable.Message));
+            }
 
             if (Input.GetButtonDown("Fire1"))
             {
@@ -55,14 +75,50 @@ public class PlayerInteract : MonoBehaviour
         }
     }
 
+    private IEnumerator TypeText(string fullText)
+    {
+        _interactionText.text = "";
+        foreach (char c in fullText)
+        {
+            _interactionText.text += c;
+            _source.PlayOneShot(GetRandomClip());
+            yield return new WaitForSeconds(_typingSpeed);
+        }
+    }
+
+    private void UpdateInteractionText(string newText)
+    {
+        if (_typingCoroutine != null)
+            StopCoroutine(_typingCoroutine);
+
+        _typingCoroutine = StartCoroutine(TypeText(newText));
+    }
+
     private void ClearCurrentInteractable()
     {
         if (_currentInteractable == null) return;
 
         _currentInteractable.OnLoseFocus();
-        if (InteractionText != null)
-            InteractionText.gameObject.SetActive(false);
+        _currentInteractable.OnTextChanged -= UpdateInteractionText;
+
+        if (_interactionText != null)
+        {
+            _interactionText.gameObject.SetActive(false);
+            _interactionText.text = "";
+        }
+
+        if (_typingCoroutine != null)
+        {
+            StopCoroutine(_typingCoroutine);
+            _typingCoroutine = null;
+        }
 
         _currentInteractable = null;
+    }
+
+    private AudioClip GetRandomClip()
+    {
+        _source.pitch = Random.Range(0.9f, 1.2f);
+        return _clips[Random.Range(0, _clips.Length)];
     }
 }
