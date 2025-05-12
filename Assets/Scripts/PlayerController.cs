@@ -84,11 +84,11 @@ public class PlayerController : MonoBehaviour
     {
         if (Input.GetKey(KeyCode.Z))
         {
-            Zoom(60);
+            Zoom(20);
         }
         else
         {
-            Zoom(100);
+            Zoom(70);
         }
     }
 

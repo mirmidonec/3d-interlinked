@@ -3,7 +3,37 @@ guid: a0da94c40f02a53488f1f67e5ea4e386
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: chair
+    second: {fileID: 2100000, guid: 1428bfaa01427294a9f3a3553f9647d6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: kolesiki
+    second: {fileID: 2100000, guid: 6969a3e165646924aa0f4bb0c88d433d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: nizhnee_kreplenie
+    second: {fileID: 2100000, guid: e7380b074c6ff73489fd0a8080ebf535, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: podlokotniki
+    second: {fileID: 2100000, guid: d77714272023c3e478aaad5f65847aac, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: srednee_kreplenie
+    second: {fileID: 2100000, guid: 7a4075e74b01487458e6775473982452, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: verhnee_kreplenie
+    second: {fileID: 2100000, guid: 4b02a02596dba2046892905d9db8c65b, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

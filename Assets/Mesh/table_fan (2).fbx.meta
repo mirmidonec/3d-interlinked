@@ -3,7 +3,32 @@ guid: 392755f1b694824448c98183ec005ed8
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: cage
+    second: {fileID: 2100000, guid: dba09d482c90912438fdcfb09cc9b303, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: center
+    second: {fileID: 2100000, guid: e4e6d8451a4a1464ab0383b6c4243a3c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: lopasti
+    second: {fileID: 2100000, guid: 8b71dd99e717f81419c694a32d9f5d91, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: podstavka
+    second: {fileID: 2100000, guid: 8ac1a98d77143314d994e2d39fc3d47f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: rama
+    second: {fileID: 2100000, guid: 2420fd09c5b7bc045818044d235f8660, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

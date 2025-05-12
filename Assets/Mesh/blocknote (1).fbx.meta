@@ -3,7 +3,27 @@ guid: 15d83ad5a4a07204c8f3013e10a0fad1
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: label
+    second: {fileID: 2100000, guid: ab53662f573b05743b3c66f090e6a367, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: oblozhka
+    second: {fileID: 2100000, guid: 2cdfd0cd947067246ac3ac8f63589808, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: paper
+    second: {fileID: 2100000, guid: 95a2ab26f95555341876a8d07e8fbef6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: rings
+    second: {fileID: 2100000, guid: 7b008d67139796041bd4d044174c865e, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
