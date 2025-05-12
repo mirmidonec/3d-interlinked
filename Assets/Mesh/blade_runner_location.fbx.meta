@@ -3,7 +3,57 @@ guid: f09d1a318f45f73458523136f049d9d8
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: end_ceiling
+    second: {fileID: 2100000, guid: c7579b2afdf6c0740ab05de373cbf6d7, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: end_floor
+    second: {fileID: 2100000, guid: cfe1c4002ec24ff4d8ea06d6b3308d6b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: end_wall
+    second: {fileID: 2100000, guid: c950b7beda13aa64aab74c5569bbbbf4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: kreplenie
+    second: {fileID: 2100000, guid: fc7d1d63e1869a44a906bae8f02a563e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: main_ceiling
+    second: {fileID: 2100000, guid: 11d5f5192280cab419ee24cbf7861441, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: main_floor
+    second: {fileID: 2100000, guid: 8e284a07691fed04d87ddb54d47b2085, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: main_walls
+    second: {fileID: 2100000, guid: c3eca070e3984a74496ab95732f8bdb4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: start_ceiling
+    second: {fileID: 2100000, guid: 67d6a59d44e82b049a193e8b4899eaf2, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: start_floor
+    second: {fileID: 2100000, guid: f7faf91483b84264ab94a0ab1ab0147a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: start_wall
+    second: {fileID: 2100000, guid: dee492b9774b38e4f87773b31e9762d9, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
