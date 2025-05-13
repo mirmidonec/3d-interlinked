@@ -10,8 +10,6 @@ public class PlayerInteract : MonoBehaviour
 
     [SerializeField] private Text _interactionText;
     [SerializeField] private float _typingSpeed;
-    [SerializeField] private AudioSource _source;
-    [SerializeField] private AudioClip[] _clips;
 
 
     private Coroutine _typingCoroutine;
@@ -81,7 +79,6 @@ public class PlayerInteract : MonoBehaviour
         foreach (char c in fullText)
         {
             _interactionText.text += c;
-            _source.PlayOneShot(GetRandomClip());
             yield return new WaitForSeconds(_typingSpeed);
         }
     }
@@ -116,9 +113,4 @@ public class PlayerInteract : MonoBehaviour
         _currentInteractable = null;
     }
 
-    private AudioClip GetRandomClip()
-    {
-        _source.pitch = Random.Range(0.9f, 1.2f);
-        return _clips[Random.Range(0, _clips.Length)];
-    }
 }

@@ -9,6 +9,16 @@ ModelImporter:
       assembly: UnityEngine.CoreModule
       name: cup
     second: {fileID: 2100000, guid: de64f897a3350c64687230ca3a4c1fc8, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: handle
+    second: {fileID: 2100000, guid: c52ace778d5acae4aabb41388893a219, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: thermos
+    second: {fileID: 2100000, guid: 2cd5efd212bc02549a458bc6b8a67fc7, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

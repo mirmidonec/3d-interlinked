@@ -1,13 +1,6 @@
 
 public class Notebook : Interactable
 {
-    private Outline _outline;
-    
-    private void Awake()
-    {
-        _outline = GetComponent<Outline>();
-    }
-
     public override void OnFocus()
     {
         Message = "My notebook";
@@ -24,7 +17,7 @@ public class Notebook : Interactable
     {
     }
 
-    
+
 
 
 }

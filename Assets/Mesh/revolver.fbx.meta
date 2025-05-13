@@ -3,7 +3,42 @@ guid: 30f7c22647d4b8b43b1e9eea63ce6520
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: base
+    second: {fileID: 2100000, guid: 9159535dd950c6e4f826ee0794198a68, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: bullet
+    second: {fileID: 2100000, guid: f29c222d9053d794d84e0196c3bb4a86, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: dulo
+    second: {fileID: 2100000, guid: 2c87758f845214d44accee39e2702e72, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: kurok
+    second: {fileID: 2100000, guid: 4be0e34c61ab11146af250036c6da45f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: nizhnee_dulo
+    second: {fileID: 2100000, guid: 54c8be7df9c56f743941315874fe3de7, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: rukoyatka
+    second: {fileID: 2100000, guid: c14a6870df769854b9d3cbf19ff0e007, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: spuskovoi_kruchok
+    second: {fileID: 2100000, guid: 2714147ff605c844880f37be297d716e, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

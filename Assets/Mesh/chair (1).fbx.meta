@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: a0da94c40f02a53488f1f67e5ea4e386
+guid: 785eff5e5b8fd444391d6783bddb35fd
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
@@ -24,6 +24,11 @@ ModelImporter:
       assembly: UnityEngine.CoreModule
       name: podlokotniki
     second: {fileID: 2100000, guid: d77714272023c3e478aaad5f65847aac, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: roliki
+    second: {fileID: 2100000, guid: 438e3e15aa5cd1944b2379b3792970d7, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
