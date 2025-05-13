@@ -3,7 +3,112 @@ guid: faf2f266bade1e04aade86ff98570a0b
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: back
+    second: {fileID: 2100000, guid: c4217e788d2547941bb3f3a9722ae08f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: buttons
+    second: {fileID: 2100000, guid: 74e49178e62d7014daa27a4dfe4ac132, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: device
+    second: {fileID: 2100000, guid: c4217e788d2547941bb3f3a9722ae08f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: eye_constuctor
+    second: {fileID: 2100000, guid: 5a56aa7ad489951408ad5dbb552a74a7, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: eye_detector
+    second: {fileID: 2100000, guid: bb379a92dfe4bf7489bebc3471306a1f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: fans
+    second: {fileID: 2100000, guid: b22f70c88e4da11499dce1cd297fa05b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: lamps
+    second: {fileID: 2100000, guid: f284bdc3fb5647c46af00cefd1123a4c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: left_panel_screen
+    second: {fileID: 2100000, guid: 9dad2d859be4aaa4aa1b7d6bf4f335b3, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: little_screens
+    second: {fileID: 2100000, guid: 7c05d2e6c41b5ae48b755f9d955b02c0, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: little_tvs
+    second: {fileID: 2100000, guid: d92a3977ca0cf8e4c9da3147aae037ee, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: on_main_tv
+    second: {fileID: 2100000, guid: 0745e6544ae32b84fa67af5c65e1c2aa, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: on_tv_lamps
+    second: {fileID: 2100000, guid: 6fc26c1acac6dd846b2b652c694709e0, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: pillow
+    second: {fileID: 2100000, guid: 55963b3c58171fc4ba4cd894ebd4beb5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: polzunok
+    second: {fileID: 2100000, guid: f99c6873e4b38ef46a4b5fb2d2049376, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: screen
+    second: {fileID: 2100000, guid: 854f7b0e5fb2ab0408901a0382ba4a2e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: stck_mid
+    second: {fileID: 2100000, guid: dcead4b12c0ed074c9f79112e160d369, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: stick_base
+    second: {fileID: 2100000, guid: 14628be65105a6e4a9d433f73e323690, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: switcher_1
+    second: {fileID: 2100000, guid: 86f2b10719e84054682d7bd8d8561315, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: switcher_2
+    second: {fileID: 2100000, guid: 623d2d640cf50714fafaac529db01765, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: switcher_3
+    second: {fileID: 2100000, guid: b3c402bd94375064ea9b54090192096d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: time_screen
+    second: {fileID: 2100000, guid: 2b831487671eb3e47b444de87bea4469, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

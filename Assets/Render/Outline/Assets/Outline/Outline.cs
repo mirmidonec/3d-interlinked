@@ -29,6 +29,13 @@ public class Outline : MonoBehaviour
         StartCoroutine(OnClickHighlihgt());
     }
 
+    public void DisableOutline()
+    {
+        StopAllCoroutines();
+        tag = "Untagged";
+        m_outlineVolume.size = m_defaultSize;
+    }
+
     private void OnMouseExit()
     {
         StopAllCoroutines();
