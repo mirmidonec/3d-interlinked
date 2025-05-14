@@ -1026,7 +1026,7 @@ Light:
   serializedVersion: 10
   m_Type: 0
   m_Shape: 0
-  m_Color: {r: 0.989644, g: 0.9924528, b: 0.7171875, a: 1}
+  m_Color: {r: 0.9547169, g: 0.95092696, b: 0.6250694, a: 1}
   m_Intensity: 7.61
   m_Range: 24.73
   m_SpotAngle: 39.609417
@@ -1763,7 +1763,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &628240267
 Transform:
   m_ObjectHideFlags: 0
@@ -1789,10 +1789,10 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: c4e80796167c7a84face6a21272e5c81, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 8d2b5950db95de54e9afab5e8c6369f5, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 0.143
-  m_Pitch: 3
+  m_Volume: 0.335
+  m_Pitch: 1
   Loop: 1
   Mute: 0
   Spatialize: 0
@@ -2448,7 +2448,7 @@ Light:
   serializedVersion: 10
   m_Type: 0
   m_Shape: 0
-  m_Color: {r: 0.989644, g: 0.9924528, b: 0.7171875, a: 1}
+  m_Color: {r: 0.9547169, g: 0.95092696, b: 0.6250694, a: 1}
   m_Intensity: 7.61
   m_Range: 24.73
   m_SpotAngle: 39.609417
@@ -3237,7 +3237,7 @@ Light:
   serializedVersion: 10
   m_Type: 0
   m_Shape: 0
-  m_Color: {r: 0.989644, g: 0.9924528, b: 0.7171875, a: 1}
+  m_Color: {r: 0.9547169, g: 0.95092696, b: 0.6250694, a: 1}
   m_Intensity: 7.61
   m_Range: 24.73
   m_SpotAngle: 39.609417
@@ -3681,7 +3681,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1240878923}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 47049b82b7c27c542bc0e59948162e36, type: 3}
   m_Name: 
@@ -6064,6 +6064,7 @@ MonoBehaviour:
   range1: 0.95
   range2: 1.05
   Panel: {fileID: 2010544080}
+  OST: {fileID: 628240266}
 --- !u!114 &2010544085
 MonoBehaviour:
   m_ObjectHideFlags: 0

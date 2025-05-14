@@ -6,7 +6,7 @@ using TMPro;
 
 
 [RequireComponent(typeof(CharacterController))]
-public class WeaponController : MonoBehaviour
+public class PlayerShoot : MonoBehaviour
 {
     [Header("References")]
     public Transform weaponTransform;

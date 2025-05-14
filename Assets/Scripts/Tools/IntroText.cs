@@ -21,6 +21,8 @@ public class IntroText : MonoBehaviour
     private bool fs1;
 
     public GameObject Panel;
+
+    public GameObject OST;
     private void Update()
     {
         if (Input.GetButtonDown("Fire1") && visible)
@@ -73,6 +75,7 @@ public class IntroText : MonoBehaviour
 
         yield return new WaitForSeconds(3f);
         StartCoroutine(Panel.GetComponent<Transition>().FadeOut());
+        OST.SetActive(true);
         
     }
 
