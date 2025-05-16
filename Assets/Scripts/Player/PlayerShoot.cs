@@ -1,70 +1,96 @@
 using EZCameraShake;
 using UnityEngine;
 using System.Collections;
-using System.Collections.Generic;
 using TMPro;
-
 
 [RequireComponent(typeof(CharacterController))]
 public class PlayerShoot : MonoBehaviour
 {
+
     [Header("References")]
-    public Transform weaponTransform;
-    public Transform cameraTransform;
+    [SerializeField] private Transform _weaponTransform;
+    [SerializeField] private Transform _cameraTransform;
+    [SerializeField] private TMP_Text _ammoText;
 
     [Header("Bob Settings")]
-    public float bobSpeed = 6f;
-    public float bobAmount = 0.05f;
+    [SerializeField] private float _bobSpeed = 6f;
+    [SerializeField] private float _bobAmount = 0.05f;
 
     [Header("Tilt Settings")]
-    public float tiltAmount = 5f;
-    public float tiltSpeed = 6f;
+    [SerializeField] private float _tiltAmount = 5f;
+    [SerializeField] private float _tiltSpeed = 6f;
 
     [Header("Sway Settings")]
-    public float swayAmount = 0.03f;
-    public float swaySmooth = 4f;
+    [SerializeField] private float _swayAmount = 0.03f;
+    [SerializeField] private float _swaySmooth = 4f;
 
     [Header("Recoil Settings")]
-    public float recoilAmount = 0.1f;
-    public float recoilSpeed = 10f;
+    [SerializeField] private float _recoilAmount = 0.1f;
+    [SerializeField] private float _recoilSpeed = 10f;
 
     [Header("Fire Settings")]
-    public float fireRate = 0.2f;
+    [SerializeField] private float _fireRate = 0.2f;
+
     [Header("Ammo Settings")]
-    public int maxAmmo = 6;
-    public int currentAmmo;
-    public AudioClip emptyClip;
+    [SerializeField] private int _maxAmmo = 6;
+    [SerializeField] private AudioClip _emptyClip;
+    [SerializeField] private AudioClip _shootClip;
+      [SerializeField] private AudioClip _enableClip;
 
-    private CharacterController controller;
-    private Vector3 initialLocalPos;
-    private Quaternion initialLocalRot;
-    private Vector3 swayOffset;
-    private float bobTimer;
-    private Vector3 currentRecoilOffset;
-    private float nextFireTime = 0f;
+    [Header("Camera Shake Settings")]
+    [SerializeField] private float _shakeAmount = 3f;
 
-    public AudioSource source;
-    public AudioClip shootClip;
-    public AudioClip enableClip;
+    [Header("Audio")]
+    [SerializeField] private AudioSource _audioSource;
 
-    public float shakeAmount;
+    private CharacterController _characterController;
+    private Vector3 _initialLocalPosition;
+    private Quaternion _initialLocalRotation;
 
-    public TMP_Text text;
+    private Vector3 _swayOffset;
+    private float _bobTimer;
+    private Vector3 _currentRecoilOffset;
 
-    void Start()
+    private float _nextFireTime;
+
+    private int _currentAmmo;
+
+    private Coroutine _recoilCoroutine;
+
+    public bool IsEquipped => InventoryManager.Instance.EquippedItem == InventoryManager.ItemType.Revolver;
+
+    public int CurrentAmmo => _currentAmmo;
+
+
+    private void Awake()
     {
-        controller = GetComponent<CharacterController>();
-        initialLocalPos = weaponTransform.localPosition;
-        initialLocalRot = weaponTransform.localRotation;
-        currentAmmo = maxAmmo; // полная обойма при старте
+        _characterController = GetComponent<CharacterController>();
+
+        if (_weaponTransform == null)
+            Debug.LogWarning("Weapon Transform is not assigned.");
+
+        if (_audioSource == null)
+            Debug.LogWarning("AudioSource is not assigned.");
+
+        _currentAmmo = _maxAmmo;
     }
 
-    void Update()
+    private void Start()
     {
-        if (!InventoryManager.Instance.IsEquiped)
+        
+        _initialLocalPosition = _weaponTransform.localPosition;
+        _initialLocalRotation = _weaponTransform.localRotation;
+
+        UpdateAmmoUI();
+        
+    }
+
+    private void Update()
+    {
+        if (!IsEquipped)
             return;
 
-        text.text = currentAmmo + "/" + maxAmmo;
+        UpdateAmmoUI();
 
         HandleBob();
         HandleSway();
@@ -72,13 +98,14 @@ public class PlayerShoot : MonoBehaviour
         HandleFireInput();
     }
 
-    void HandleFireInput()
-    {
-        if (Input.GetButtonDown("Fire1") && Time.time >= nextFireTime)
-        {
-            nextFireTime = Time.time + fireRate;
 
-            if (currentAmmo > 0)
+    private void HandleFireInput()
+    {
+        if (Input.GetButtonDown("Fire1") && Time.time >= _nextFireTime)
+        {
+            _nextFireTime = Time.time + _fireRate;
+
+            if (_currentAmmo > 0)
             {
                 Fire();
             }
@@ -89,85 +116,116 @@ public class PlayerShoot : MonoBehaviour
         }
     }
 
-    void PlayEmptyClick()
+    private void Fire()
     {
-        if (emptyClip != null)
+        _currentAmmo--;
+        UpdateAmmoUI();
+
+        if (_recoilCoroutine != null)
+            StopCoroutine(_recoilCoroutine);
+
+        _recoilCoroutine = StartCoroutine(DoRecoil());
+
+        PlayShootSound();
+        ShakeCamera();
+    }
+
+    private IEnumerator DoRecoil()
+    {
+        float t = 0f;
+        Vector3 startOffset = _currentRecoilOffset;
+        Vector3 recoilTarget = new Vector3(0f, 0f, -_recoilAmount);
+
+        while (t < 1f)
         {
-            source.PlayOneShot(emptyClip);
+            t += Time.deltaTime * _recoilSpeed;
+            _currentRecoilOffset = Vector3.Lerp(startOffset, recoilTarget, t);
+            yield return null;
+        }
+
+        t = 0f;
+
+        while (t < 1f)
+        {
+            t += Time.deltaTime * _recoilSpeed;
+            _currentRecoilOffset = Vector3.Lerp(recoilTarget, Vector3.zero, t);
+            yield return null;
+        }
+
+        _currentRecoilOffset = Vector3.zero;
+    }
+
+    private void PlayEmptyClick()
+    {
+        if (_emptyClip != null && _audioSource != null)
+        {
+            _audioSource.PlayOneShot(_emptyClip);
         }
     }
 
-    void HandleBob()
+    private void PlayShootSound()
     {
-        if (controller.velocity.magnitude > 0.1f && controller.isGrounded)
+        if (_shootClip != null && _audioSource != null)
         {
-            bobTimer += Time.deltaTime * bobSpeed;
+            _audioSource.PlayOneShot(_shootClip);
+        }
+    }
 
-            float offsetX = Mathf.Sin(bobTimer) * bobAmount;
-            float offsetY = Mathf.Cos(bobTimer * 2f) * (bobAmount * 0.5f);
+    private void ShakeCamera()
+    {
+        CameraShaker.Instance.ShakeOnce(_shakeAmount, 2f, 0.1f, 0.5f, Vector3.zero, Vector3.one);
+    }
+
+    private void HandleBob()
+    {
+        if (_characterController.velocity.magnitude > 0.1f && _characterController.isGrounded)
+        {
+            _bobTimer += Time.deltaTime * _bobSpeed;
+
+            float offsetX = Mathf.Sin(_bobTimer) * _bobAmount;
+            float offsetY = Mathf.Cos(_bobTimer * 2f) * (_bobAmount * 0.5f);
 
             Vector3 bobOffset = new Vector3(offsetX, offsetY, 0f);
-            weaponTransform.localPosition = Vector3.Lerp(weaponTransform.localPosition, initialLocalPos + bobOffset + swayOffset + currentRecoilOffset, Time.deltaTime * bobSpeed);
+            Vector3 targetPosition = _initialLocalPosition + bobOffset + _swayOffset + _currentRecoilOffset;
+
+            _weaponTransform.localPosition = Vector3.Lerp(_weaponTransform.localPosition, targetPosition, Time.deltaTime * _bobSpeed);
         }
         else
         {
-            bobTimer = 0;
-            weaponTransform.localPosition = Vector3.Lerp(weaponTransform.localPosition, initialLocalPos + swayOffset + currentRecoilOffset, Time.deltaTime * bobSpeed);
+            _bobTimer = 0f;
+            Vector3 targetPosition = _initialLocalPosition + _swayOffset + _currentRecoilOffset;
+            _weaponTransform.localPosition = Vector3.Lerp(_weaponTransform.localPosition, targetPosition, Time.deltaTime * _bobSpeed);
         }
     }
 
-    void HandleSway()
+    private void HandleSway()
     {
         float mouseX = Input.GetAxis("Mouse X");
         float mouseY = Input.GetAxis("Mouse Y");
 
-        Vector3 targetOffset = new Vector3(-mouseX, -mouseY, 0f) * swayAmount;
-        swayOffset = Vector3.Lerp(swayOffset, targetOffset, Time.deltaTime * swaySmooth);
+        Vector3 targetOffset = new Vector3(-mouseX, -mouseY, 0f) * _swayAmount;
+        _swayOffset = Vector3.Lerp(_swayOffset, targetOffset, Time.deltaTime * _swaySmooth);
     }
 
-    void HandleTilt()
+    private void HandleTilt()
     {
-        float horizontal = Input.GetAxis("Horizontal");
-        Quaternion targetTilt = Quaternion.Euler(0f, 0f, -horizontal * tiltAmount);
-        weaponTransform.localRotation = Quaternion.Lerp(weaponTransform.localRotation, initialLocalRot * targetTilt, Time.deltaTime * tiltSpeed);
+        float horizontalInput = Input.GetAxis("Horizontal");
+        Quaternion targetTilt = Quaternion.Euler(0f, 0f, -horizontalInput * _tiltAmount);
+        _weaponTransform.localRotation = Quaternion.Lerp(_weaponTransform.localRotation, _initialLocalRotation * targetTilt, Time.deltaTime * _tiltSpeed);
     }
 
-    void Fire()
+    private void UpdateAmmoUI()
     {
-        currentAmmo--; // уменьшаем патроны
-        StopAllCoroutines();
-        StartCoroutine(DoRecoil());
-    }
-
-    IEnumerator DoRecoil()
-    {
-        float t = 0f;
-        Vector3 start = currentRecoilOffset;
-        Vector3 recoilVector = new Vector3(0f, 0f, -recoilAmount);
-
-        source.PlayOneShot(shootClip);
-        CameraShaker.Instance.ShakeOnce(shakeAmount, 2f, 0.1f, 0.5f, Vector3.zero, Vector3.one);
-
-        while (t < 1f)
+        if (_ammoText != null)
         {
-            t += Time.deltaTime * recoilSpeed;
-            currentRecoilOffset = Vector3.Lerp(start, recoilVector, t);
-            yield return null;
+            _ammoText.text = $"{_currentAmmo}/{_maxAmmo}";
         }
-        t = 0f;
-        while (t < 1f)
-        {
-            t += Time.deltaTime * recoilSpeed;
-            currentRecoilOffset = Vector3.Lerp(recoilVector, Vector3.zero, t);
-            yield return null;
-        }
-
-        currentRecoilOffset = Vector3.zero;
     }
 
-    // Можно добавить метод перезарядки
     public void Reload()
     {
-        currentAmmo = maxAmmo;
+        _currentAmmo = _maxAmmo;
+        UpdateAmmoUI();
     }
 }
+

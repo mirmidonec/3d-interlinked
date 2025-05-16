@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using TMPro;
 
 [RequireComponent(typeof(Camera))]
 [DisallowMultipleComponent]
@@ -9,6 +10,7 @@ public class PlayerInteract : MonoBehaviour
 {
 
     [SerializeField] private Text _interactionText;
+    [SerializeField] private TMP_Text _guidText;
     [SerializeField] private float _typingSpeed;
 
 
@@ -48,6 +50,8 @@ public class PlayerInteract : MonoBehaviour
                     _currentInteractable.OnLoseFocus();
                     _currentInteractable.OnTextChanged -= UpdateInteractionText;
                 }
+                _guidText.gameObject.SetActive(true);
+
 
                 _currentInteractable = newInteractable;
                 _currentInteractable.OnFocus();
@@ -65,6 +69,10 @@ public class PlayerInteract : MonoBehaviour
             if (Input.GetButtonDown("Fire1"))
             {
                 _currentInteractable.OnInteract();
+            }
+            else if (Input.GetButtonDown("Fire2"))
+            {
+                _currentInteractable.OnInteractAlt();
             }
         }
         else
@@ -97,6 +105,8 @@ public class PlayerInteract : MonoBehaviour
 
         _currentInteractable.OnLoseFocus();
         _currentInteractable.OnTextChanged -= UpdateInteractionText;
+
+        _guidText.gameObject.SetActive(false);
 
         if (_interactionText != null)
         {

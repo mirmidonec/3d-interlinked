@@ -6,19 +6,16 @@ using UnityEngine;
 public class Door : Interactable
 {
     [Header("Open Settings")]
-    [SerializeField] private float _openAngle = 90f;
-    [SerializeField] private float _openSpeed = 90f;
+    [SerializeField] private float _openAngle;
+    [SerializeField] private float _openSpeed;
     [SerializeField] private Transform _hingeTransform;
+    [SerializeField] private AudioClip _openSound;
 
     private bool _isOpen = false;
     private Quaternion _closedRotation;
     private Quaternion _targetRotation;
-
     private Coroutine _doorCoroutine;
-
     private AudioSource _source;
-
-    public AudioClip OpenSound;
 
     public override void OnFocus()
     {
@@ -60,7 +57,7 @@ public class Door : Interactable
             StopCoroutine(_doorCoroutine);
 
         _doorCoroutine = StartCoroutine(AnimateDoor());
-        _source.PlayOneShot(OpenSound);
+        _source.PlayOneShot(_openSound);
     }
 
     private void SetOpenRotation()

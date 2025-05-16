@@ -11,7 +11,6 @@ public class PlayerController : MonoBehaviour
 
     [Header("Camera")]
     public bool invertX;
-    public GameObject screenshake;
     public bool invertY;
     public Camera playerCamera;
     public float lookSpeedX;

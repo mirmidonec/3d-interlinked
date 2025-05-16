@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using System;
-public abstract class Interactable : MonoBehaviour
+public class Interactable : MonoBehaviour
 {
     private string _text;
     public event Action<string> OnTextChanged;
@@ -24,7 +24,20 @@ public abstract class Interactable : MonoBehaviour
             }
         }
     }
-    public abstract void OnFocus();
-    public abstract void OnLoseFocus();
-    public abstract void OnInteract();
+    public virtual void OnFocus()
+    {
+        
+    }
+    public virtual void OnLoseFocus()
+    {
+        
+    }
+    public virtual void OnInteract()
+    {
+        
+    }
+    public virtual void OnInteractAlt()
+    {
+        
+    }
 }

@@ -12,6 +12,13 @@ public class Notebook : Interactable
         Message = "Stores all interrogation protocols";
         _outline.ActivatedOutline();
     }
+    public override void OnInteractAlt()
+    {
+        if (!InventoryManager.Instance.IsEquipped)
+        {
+            InventoryManager.Instance.Equip(InventoryManager.ItemType.Notebook);
+        }
+    }
 
     public override void OnLoseFocus()
     {

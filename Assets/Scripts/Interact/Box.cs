@@ -7,28 +7,36 @@ public class Box : Interactable
     [SerializeField] private float _openZ;
     [SerializeField] private float _closedZ;
     [SerializeField] private float _duration;
-    [SerializeField] private AudioClip _open;
+    [SerializeField] private AudioClip _openSound;
+
     private bool _isOpen = false;
     private Coroutine _currentCoroutine;
+    private AudioSource _source;
 
-    public AudioSource Source;
+
+    protected override void Awake()
+    {
+        base.Awake();
+        _source = GetComponentInParent<AudioSource>();
+
+    }
 
     public override void OnFocus()
     {
-          Message = "Shelf";
+        Message = "Shelf";
         _outline.ActiveOutline();
     }
 
     public override void OnInteract()
     {
         ToggleDrawer();
-        Source.PlayOneShot(_open);
+        _source.PlayOneShot(_openSound);
         _outline.ActivatedOutline();
     }
 
     public override void OnLoseFocus()
     {
-         _outline.DisableOutline();
+        _outline.DisableOutline();
     }
 
     public void ToggleDrawer()

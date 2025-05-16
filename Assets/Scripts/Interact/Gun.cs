@@ -1,6 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 
 public class Gun : Interactable
 {
@@ -14,9 +11,14 @@ public class Gun : Interactable
     {
         Message = "In a critical situation...";
         _outline.ActivatedOutline();
-        if (!InventoryManager.Instance.IsEquiped)
+
+    }
+
+    public override void OnInteractAlt()
+    {
+        if (!InventoryManager.Instance.IsEquipped)
         {
-            InventoryManager.Instance.Pick();
+            InventoryManager.Instance.Equip(InventoryManager.ItemType.Revolver);
         }
     }
 

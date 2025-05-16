@@ -1,6 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+
 
 public class Chair : Interactable
 {
@@ -12,7 +10,7 @@ public class Chair : Interactable
 
     public override void OnInteract()
     {
-         Message = "Inspect the room before sit down";
+        Message = "Inspect the room before sit down";
         _outline.ActivatedOutline();
     }
 

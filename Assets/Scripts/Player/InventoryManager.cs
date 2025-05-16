@@ -4,43 +4,111 @@ using UnityEngine;
 
 public class InventoryManager : MonoBehaviour
 {
-    public static InventoryManager Instance;
-    public bool IsEquiped = false;
+    public static InventoryManager Instance { get; private set; }
 
-    public GameObject Revolver;
+    public enum ItemType
+    {
+        Revolver,
+        Notebook
+    }
 
-    public GameObject RevolverDown;
+    [Header("Revolver References")]
+    [SerializeField] private GameObject _revolverActive;
+    [SerializeField] private GameObject _revolverInactive;
+
+    [Header("Notebook References")]
+    [SerializeField] private GameObject _notebookActive;
+    [SerializeField] private GameObject _notebookInactive;
+
+    private Dictionary<ItemType, (GameObject activeObj, GameObject inactiveObj)> _items;
+
+    private ItemType? _equippedItem = null;
+    public bool IsEquipped => _equippedItem.HasValue;
+    public ItemType? EquippedItem => _equippedItem;
 
     private void Awake()
     {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
         Instance = this;
+        InitializeItems();
+    }
+
+    private void InitializeItems()
+    {
+        _items = new Dictionary<ItemType, (GameObject, GameObject)>
+        {
+            { ItemType.Revolver, (_revolverActive, _revolverInactive) },
+            { ItemType.Notebook, (_notebookActive, _notebookInactive) }
+        };
+
+        foreach (var item in _items.Values)
+        {
+            if (item.activeObj != null) item.activeObj.SetActive(false);
+            if (item.inactiveObj != null) item.inactiveObj.SetActive(true);
+        }
     }
 
     private void Update()
     {
-        if(!IsEquiped) return;
+        if (!IsEquipped) return;
 
         if (Input.GetKeyDown(KeyCode.Q))
         {
-            Drop();
+            DropCurrentItem();
         }
     }
 
-    public void Pick()
+   
+    public void Equip(ItemType itemType)
     {
-        RevolverDown.SetActive(false);
-        Revolver.SetActive(true);
-        IsEquiped = true;
+        if (_equippedItem.HasValue)
+        {
+            SetItemActive(_equippedItem.Value, false);
+            SetItemInactive(_equippedItem.Value, true);
+        }
+
+        SetItemInactive(itemType, false);
+        SetItemActive(itemType, true);
+
+        _equippedItem = itemType;
     }
-    public void Drop()
+
+    public void DropCurrentItem()
     {
-        RevolverDown.SetActive(true);
-        Revolver.SetActive(false);
-        IsEquiped = false;
+        var itemType = _equippedItem.Value;
+
+        SetItemActive(itemType, false);
+        SetItemInactive(itemType, true);
+
+        _equippedItem = null;
+
     }
 
+    private void SetItemActive(ItemType itemType, bool isActive)
+    {
+        if (_items.TryGetValue(itemType, out var item))
+        {
+            if (item.activeObj != null)
+                item.activeObj.SetActive(isActive);
+        }
+    }
 
+    private void SetItemInactive(ItemType itemType, bool isActive)
+    {
+        if (_items.TryGetValue(itemType, out var item))
+        {
+            if (item.inactiveObj != null)
+                item.inactiveObj.SetActive(isActive);
+        }
+    }
 
-
+    public bool IsItemEquipped(ItemType itemType)
+    {
+        return _equippedItem.HasValue && _equippedItem.Value == itemType;
+    }
 
 }
