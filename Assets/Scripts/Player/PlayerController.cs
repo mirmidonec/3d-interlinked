@@ -54,6 +54,13 @@ public class PlayerController : MonoBehaviour
     [Header("Movement Parameters")]
     public float gravity = 30f;
 
+    [Header("Sitting System")]
+    public Transform sitPoint;
+    public Transform standPoint;
+    public bool isSitting = false;
+
+    public AudioClip Sit;
+
 
 
     private void Awake()
@@ -68,6 +75,16 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+
+        if (isSitting)
+        {
+            HandleMouseLook();
+            HandleStandUp();
+            HandleZoom();
+            return;
+        }
+
+
         headbobEndTimer -= Time.deltaTime;
         HandleCameraController();
         HandleMouseLook();
@@ -138,6 +155,31 @@ public class PlayerController : MonoBehaviour
         }
 
         characterController.Move(moveDirection * Time.deltaTime);
+    }
+
+    public void HandleSit()
+    {
+        if (sitPoint != null)
+        {
+            footSource.PlayOneShot(Sit);
+            isSitting = true;
+            characterController.enabled = false;
+            transform.position = sitPoint.position;
+            transform.rotation = sitPoint.rotation;
+            playerCamera.transform.localRotation = Quaternion.identity;
+            currentInput = Vector2.zero;
+            currentInputRaw = Vector2.zero;
+        }
+    }
+
+    private void HandleStandUp()
+    {
+        if (Input.GetKeyDown(KeyCode.Space) && standPoint != null)
+        {
+            isSitting = false;
+            transform.position = standPoint.position;
+            characterController.enabled = true;
+        }
     }
 
     private void CalculateMovementInput()

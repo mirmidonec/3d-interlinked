@@ -1,48 +1,79 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class TextShaker : MonoBehaviour
 {
-    public GameObject text;
-
-    private bool textShaking;
-
-    private float posX;
-    private float posZ;
-
     [Header("Shake Settings")]
-    public float delay = 0.05f;
+    [SerializeField] private float _shakeDelay;
 
-    public float posX_value1 = -1f;
-    public float posX_value2 = 1f;
+    [SerializeField] private float _posXMin;
+    [SerializeField] private float _posXMax;
 
-    public float posZ_value1 = -1f;
-    public float posZ_value2 = 1f;
+    [SerializeField] private float _posZMin;
+    [SerializeField] private float _posZMax;
 
-    private void Start()
+    private bool _isShaking = true;
+    private GameObject _textObject;
+    private Coroutine _shakeCoroutine;
+
+    private void Awake()
     {
-        text = gameObject;
-        textShaking = true;
-        StartCoroutine(ShakeTheText());
+        if (_textObject == null)
+        {
+            _textObject = gameObject;
+        }
     }
 
-    private IEnumerator ShakeTheText()
+    private void OnEnable()
     {
-        while (true)
+        StartShaking();
+    }
+
+    private void OnDisable()
+    {
+        StopShaking();
+    }
+
+    public void StartShaking()
+    {
+        if (_shakeCoroutine == null)
         {
-            if (!textShaking)
+            _isShaking = true;
+            _shakeCoroutine = StartCoroutine(ShakeRoutine());
+        }
+    }
+
+    public void StopShaking()
+    {
+        if (_shakeCoroutine != null)
+        {
+            StopCoroutine(_shakeCoroutine);
+            _shakeCoroutine = null;
+        }
+
+        _isShaking = false;
+
+        if (_textObject != null)
+        {
+            Vector3 localPos = _textObject.transform.localPosition;
+            _textObject.transform.localPosition = new Vector3(0f, localPos.y, 0f);
+        }
+    }
+
+    private IEnumerator ShakeRoutine()
+    {
+        while (_isShaking)
+        {
+            float randomX = Random.Range(_posXMin, _posXMax);
+            float randomZ = Random.Range(_posZMin, _posZMax);
+
+            if (_textObject != null)
             {
-                yield return null;
-                continue;
+                Vector3 currentPos = _textObject.transform.localPosition;
+                _textObject.transform.localPosition = new Vector3(randomX, currentPos.y, randomZ);
             }
 
-            posX = Random.Range(posX_value1, posX_value2);
-            posZ = Random.Range(posZ_value1, posZ_value2);
-
-            text.transform.localPosition = new Vector3(posX, posZ, text.transform.localPosition.z);
-
-            yield return new WaitForSeconds(delay);
+            yield return new WaitForSeconds(_shakeDelay);
         }
     }
 }

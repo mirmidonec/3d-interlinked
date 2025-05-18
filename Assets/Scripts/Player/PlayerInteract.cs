@@ -13,6 +13,8 @@ public class PlayerInteract : MonoBehaviour
     [SerializeField] private TMP_Text _guidText;
     [SerializeField] private float _typingSpeed;
 
+    public PlayerController Player;
+
 
     private Coroutine _typingCoroutine;
     private Camera _mainCamera;
@@ -50,7 +52,14 @@ public class PlayerInteract : MonoBehaviour
                     _currentInteractable.OnLoseFocus();
                     _currentInteractable.OnTextChanged -= UpdateInteractionText;
                 }
-                _guidText.gameObject.SetActive(true);
+                if (newInteractable.GetComponent<Chair>() && Player.isSitting)
+                {
+                    _guidText.gameObject.SetActive(false);
+                }
+                else
+                {
+                    _guidText.gameObject.SetActive(true);
+                }
 
 
                 _currentInteractable = newInteractable;

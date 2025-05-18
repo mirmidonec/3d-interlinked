@@ -1,53 +1,77 @@
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class RuningStroke : MonoBehaviour
 {
-     public RectTransform panelRect;    // Панель с RectMask2D (окно просмотра)
-    public TMP_Text textPrefab;            // Префаб текста (UI Text)
-    public float scrollSpeed = 100f;   // Скорость прокрутки в пикселях в секунду
+    [Header("UI References")]
+    [SerializeField] private RectTransform _panelRect;
+    [SerializeField] private TMP_Text _textPrefab;
 
-    private RectTransform text1;
-    private RectTransform text2;
-    private float textWidth;
+    [Header("Scrolling Settings")]
+    [SerializeField] private float _scrollSpeed;
 
-    void Start()
+    private RectTransform _textInstance1;
+    private RectTransform _textInstance2;
+    private float _textWidth;
+
+    private void Start()
     {
-        // Создаём два экземпляра текста
-        text1 = Instantiate(textPrefab, panelRect).rectTransform;
-        text2 = Instantiate(textPrefab, panelRect).rectTransform;
+        if (_panelRect == null || _textPrefab == null)
+        {
+            Debug.LogError("Panel Rect or Text Prefab is not assigned.");
+            enabled = false;
+            return;
+        }
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
 
-        // Устанавливаем одинаковый текст (можно менять)
-        text1.GetComponent<TMP_Text>().text = textPrefab.text;
-        text2.GetComponent<TMP_Text>().text = textPrefab.text;
-
-        // Получаем ширину текста (предпочтительная ширина)
-        textWidth = text1.GetComponent<TMP_Text>().preferredWidth;
-
-        // Устанавливаем начальные позиции: первый в начале панели, второй справа от первого
-        text1.anchoredPosition = Vector2.zero;
-        text2.anchoredPosition = new Vector2(textWidth, 0);
+        InitializeScrollingText();
     }
 
-    void Update()
+    private void Update()
     {
-        float moveDelta = scrollSpeed * Time.deltaTime;
+        ScrollText();
 
-        // Смещаем оба текста влево
-        text1.anchoredPosition -= new Vector2(moveDelta, 0);
-        text2.anchoredPosition -= new Vector2(moveDelta, 0);
-
-        // Если текст полностью ушёл за левую границу панели, переносим его вправо за другой текст
-        if (text1.anchoredPosition.x <= -textWidth)
+        if (Input.GetKeyDown(KeyCode.F7))
         {
-            text1.anchoredPosition = new Vector2(text2.anchoredPosition.x + textWidth, 0);
+            StartCoroutine(Transition.Instance.FadeIn());
         }
-        if (text2.anchoredPosition.x <= -textWidth)
+        else if (Input.GetKeyDown(KeyCode.F5))
         {
-            text2.anchoredPosition = new Vector2(text1.anchoredPosition.x + textWidth, 0);
+            Application.Quit();
+        }
+    }
+
+    private void InitializeScrollingText()
+    {
+        _textInstance1 = Instantiate(_textPrefab, _panelRect).rectTransform;
+        _textInstance2 = Instantiate(_textPrefab, _panelRect).rectTransform;
+
+        string textContent = _textPrefab.text;
+        _textInstance1.GetComponent<TMP_Text>().text = textContent;
+        _textInstance2.GetComponent<TMP_Text>().text = textContent;
+
+        _textWidth = _textInstance1.GetComponent<TMP_Text>().preferredWidth;
+
+        _textInstance1.anchoredPosition = Vector2.zero;
+        _textInstance2.anchoredPosition = new Vector2(_textWidth, 0);
+    }
+
+    private void ScrollText()
+    {
+        float deltaX = _scrollSpeed * Time.deltaTime;
+
+        _textInstance1.anchoredPosition -= new Vector2(deltaX, 0);
+        _textInstance2.anchoredPosition -= new Vector2(deltaX, 0);
+
+        if (_textInstance1.anchoredPosition.x <= -_textWidth)
+        {
+            _textInstance1.anchoredPosition = new Vector2(_textInstance2.anchoredPosition.x + _textWidth, 0);
+        }
+        if (_textInstance2.anchoredPosition.x <= -_textWidth)
+        {
+            _textInstance2.anchoredPosition = new Vector2(_textInstance1.anchoredPosition.x + _textWidth, 0);
         }
     }
 }

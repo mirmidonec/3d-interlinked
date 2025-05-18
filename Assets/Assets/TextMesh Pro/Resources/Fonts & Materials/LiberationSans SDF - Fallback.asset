@@ -114,7 +114,7 @@ Material:
     - _Reflectivity: 10
     - _ScaleRatioA: 0.9
     - _ScaleRatioB: 0.73125
-    - _ScaleRatioC: 0.73125
+    - _ScaleRatioC: 0.49049997
     - _ScaleX: 1
     - _ScaleY: 1
     - _ShaderFlags: 0
@@ -137,7 +137,7 @@ Material:
     - _UnderlaySoftness: 0
     - _VertexOffsetX: 0
     - _VertexOffsetY: 0
-    - _WeightBold: 0.75
+    - _WeightBold: 1.82
     - _WeightNormal: 0
     - _ZWrite: 1
     m_Colors:
@@ -304,7 +304,7 @@ MonoBehaviour:
     italicTypeface: {fileID: 0}
   normalStyle: 0
   normalSpacingOffset: 0
-  boldStyle: 0.75
+  boldStyle: 1.82
   boldSpacing: 7
   italicStyle: 35
   tabSize: 10

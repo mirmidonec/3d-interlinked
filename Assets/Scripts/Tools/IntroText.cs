@@ -4,93 +4,127 @@ using UnityEngine;
 
 public class IntroText : MonoBehaviour
 {
-    public GameObject[] entries;
+    [Header("UI Entries")]
+    [SerializeField] private GameObject[] _entries;
 
-    private bool visible;
-    public int index;
+    [Header("Audio")]
+    [SerializeField] private AudioSource _speakerAudioSource;
+    [SerializeField] private AudioClip _entrySound;
+    [SerializeField] private AudioClip _finalSound;
 
-    public AudioSource speaker_entry;
+    [Header("Audio Pitch Range")]
+    [SerializeField] private float _pitchRangeMin;
+    [SerializeField] private float _pitchRangeMax;
 
-    public AudioClip sound_entry;
-    public AudioClip sound_entry1;
+    [Header("References")]
+    [SerializeField] private GameObject _transitionPanel;
+    [SerializeField] private GameObject _ost;
+    [SerializeField] private PlayerController _player;
 
-    public float range1 = 0.95f;
-    public float range2 = 1.05f;
+    private int _currentIndex = 0;
+    private bool _isVisible = false;
+    private bool _hasPlayedFinalSound = false;
 
-    private float pitch;
-    private bool fs1;
+    private void Start()
+    {
+        Cursor.lockState = CursorLockMode.Locked;
+        _isVisible = false;
+        _currentIndex = 0;
+        _hasPlayedFinalSound = false;
 
-    public GameObject Panel;
+        HideAllEntries();
 
-    public GameObject OST;
+        StartCoroutine(ShowFirstEntryWithDelay(1f));
+    }
+
+
+    private IEnumerator ShowFirstEntryWithDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        if (_entries.Length > 0)
+        {
+            ShowEntry(_currentIndex);
+            _isVisible = true;
+            PlayEntrySound();
+        }
+    }
+
+
     private void Update()
     {
-        if (Input.GetButtonDown("Fire1") && visible)
+        if (Input.GetButtonDown("Fire1") && _isVisible)
         {
-            if (index < entries.Length - 1)
-            {
-                index++;
-                HideAll();
-                GetNextEntry();
-                PlaySound();
-            }
-            else
-            {
-                HideAll();
-                StartCoroutine(GoToMainScene());
-            }
+            HandleNextEntry();
         }
     }
 
-    private void PlaySound()
+    private void HandleNextEntry()
     {
-        pitch = Random.Range(range1, range2);
-        speaker_entry.pitch = pitch;
-        speaker_entry.PlayOneShot(sound_entry);
-    }
-
-    private void GetNextEntry()
-    {
-        if (index >= 0 && index < entries.Length)
+        if (_currentIndex < _entries.Length - 1)
         {
-            entries[index].SetActive(true);
+            _currentIndex++;
+            HideAllEntries();
+            ShowEntry(_currentIndex);
+            PlayEntrySound();
+        }
+        else
+        {
+            HideAllEntries();
+            StartCoroutine(EndIntroSequence());
         }
     }
 
-    private void HideAll()
+    private void PlayEntrySound()
     {
-        foreach (GameObject entry in entries)
+        if (_speakerAudioSource != null && _entrySound != null)
+        {
+            float randomPitch = Random.Range(_pitchRangeMin, _pitchRangeMax);
+            _speakerAudioSource.pitch = randomPitch;
+            _speakerAudioSource.PlayOneShot(_entrySound);
+        }
+    }
+
+    private void ShowEntry(int index)
+    {
+        if (index >= 0 && index < _entries.Length)
+        {
+            _entries[index].SetActive(true);
+        }
+    }
+
+    private void HideAllEntries()
+    {
+        foreach (var entry in _entries)
         {
             entry.SetActive(false);
         }
     }
 
-    private IEnumerator GoToMainScene()
+    private IEnumerator EndIntroSequence()
     {
-        if (!fs1)
+        if (!_hasPlayedFinalSound && _speakerAudioSource != null && _finalSound != null)
         {
-            speaker_entry.PlayOneShot(sound_entry1);
-            fs1 = true;
+            _speakerAudioSource.PlayOneShot(_finalSound);
+            _hasPlayedFinalSound = true;
         }
 
-        yield return new WaitForSeconds(3f);
-        StartCoroutine(Panel.GetComponent<Transition>().FadeOut());
-        OST.SetActive(true);
-        
-    }
+        yield return new WaitForSeconds(2f);
+        _player.enabled = true;
+        yield return new WaitForSeconds(1f);
 
-    private IEnumerator Start()
-    {
-        Cursor.lockState = CursorLockMode.Locked;
-        visible = false;
-
-        yield return new WaitForSeconds(3f);
-
-        if (entries.Length > 0)
+        if (_transitionPanel != null)
         {
-            entries[0].SetActive(true);
-            visible = true;
-            PlaySound();
+            var transition = _transitionPanel.GetComponent<Transition>();
+            if (transition != null)
+            {
+                yield return StartCoroutine(transition.FadeOut());
+            }
+        }
+
+        if (_ost != null)
+        {
+            _ost.SetActive(true);
         }
     }
 }

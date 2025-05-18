@@ -1,34 +1,54 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class Transition : MonoBehaviour
 {
-    public Image blackScreen;
-    public float fadeDuration = 2f;
+    [SerializeField] private Image _blackScreen;
+    [SerializeField] private float fadeDuration;
 
- public PlayerController player;
+    public static Transition Instance;
 
-
-
-    public  IEnumerator FadeOut()
+    private void Awake()
     {
-        Color color = blackScreen.color;
+        Instance = this;
+    }
+
+    public IEnumerator FadeOut()
+    {
+        Color color = _blackScreen.color;
         float t = 0f;
 
         while (t < fadeDuration)
         {
             t += Time.deltaTime;
             float alpha = Mathf.Lerp(1f, 0f, t / fadeDuration);
-            blackScreen.color = new Color(color.r, color.g, color.b, alpha);
+            _blackScreen.color = new Color(color.r, color.g, color.b, alpha);
             yield return null;
         }
 
-        blackScreen.color = new Color(color.r, color.g, color.b, 0f);
+        _blackScreen.color = new Color(color.r, color.g, color.b, 0f);
 
         gameObject.SetActive(false);
-        player.enabled = true;
+    }
+    public IEnumerator FadeIn()
+    {
+        Color color = _blackScreen.color;
+        float t = 0f;
+
+        gameObject.SetActive(true);
+
+        while (t < fadeDuration)
+        {
+            t += Time.deltaTime;
+            float alpha = Mathf.Lerp(0f, 1f, t / fadeDuration);
+            _blackScreen.color = new Color(color.r, color.g, color.b, alpha);
+            yield return null;
+        }
+
+        _blackScreen.color = new Color(color.r, color.g, color.b, 1f);
+        SceneManager.LoadScene(1);
     }
 
 }

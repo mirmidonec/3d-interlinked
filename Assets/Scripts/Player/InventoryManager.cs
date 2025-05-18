@@ -62,7 +62,7 @@ public class InventoryManager : MonoBehaviour
         }
     }
 
-   
+
     public void Equip(ItemType itemType)
     {
         if (_equippedItem.HasValue)
@@ -81,11 +81,33 @@ public class InventoryManager : MonoBehaviour
     {
         var itemType = _equippedItem.Value;
 
+        if (itemType == ItemType.Notebook)
+        {
+            StartCoroutine(DropItemWithDelay(itemType));
+        }
+        else
+        {
+            SetItemActive(itemType, false);
+            SetItemInactive(itemType, true);
+            _equippedItem = null;
+        }
+    }
+
+    private IEnumerator DropItemWithDelay(ItemType itemType)
+    {
+        if (_items.TryGetValue(itemType, out var item))
+        {
+            OpenNotebook note = item.activeObj.GetComponentInChildren<OpenNotebook>();
+            if (note.IsOpen)
+            {
+                note.CloseNotebook();
+                yield return new WaitForSeconds(0.4f);
+            }
+        }
         SetItemActive(itemType, false);
         SetItemInactive(itemType, true);
 
         _equippedItem = null;
-
     }
 
     private void SetItemActive(ItemType itemType, bool isActive)
