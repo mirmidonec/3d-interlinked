@@ -4,13 +4,12 @@ public class Notebook : Interactable
     public override void OnFocus()
     {
         Message = "Book of office";
-        _outline.ActiveOutline();
+        _outline.enabled = true;
     }
 
     public override void OnInteract()
     {
         Message = "Stores all interrogation protocols";
-        _outline.ActivatedOutline();
     }
     public override void OnInteractAlt()
     {
@@ -22,7 +21,7 @@ public class Notebook : Interactable
 
     public override void OnLoseFocus()
     {
-        _outline.DisableOutline();
+        _outline.enabled = false;
     }
 
 

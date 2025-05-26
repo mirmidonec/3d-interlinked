@@ -20,18 +20,17 @@ public class Door : Interactable
     public override void OnFocus()
     {
         Message = "Door";
-        _outline.ActiveOutline();
+        _outline.enabled = true;
     }
 
     public override void OnInteract()
     {
         ToggleDoor();
-        _outline.ActivatedOutline();
     }
 
     public override void OnLoseFocus()
     {
-        _outline.DisableOutline();
+        _outline.enabled = false;
     }
 
     protected override void Awake()

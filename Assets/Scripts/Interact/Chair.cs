@@ -5,40 +5,61 @@ public class Chair : Interactable
     public PlayerController Player;
     public override void OnFocus()
     {
-        if (Player.isSitting && Player != null)
+        if (Player == null)
         {
-            Message = " ";
+            Message = "Chair";
+            _outline.enabled = true;
+             return;
+        }
+        if (Player.isSitting)
+        {
+            Message = "";
+            _outline.enabled = false;
             return;
         }
+
         Message = "Chair";
-        _outline.ActiveOutline();
+        _outline.enabled = true;
     }
 
     public override void OnInteract()
     {
-        if (Player.isSitting && Player != null)
+        if (Player == null)
         {
-            Message = " ";
+            Message = "Sit down will trigger the start of interview";
             return;
         }
-        Message = "Inspect the room before sit down";
-        _outline.ActivatedOutline();
+        if (Player.isSitting)
+        {
+            Message = "";
+           _outline.enabled = false;
+            return;
+        }
+
+        Message = "Sit down will trigger the start of interview";
+        _outline.enabled = true;
     }
+
     public override void OnInteractAlt()
     {
-        if (Player != null && !Player.isSitting)
+        if (Player == null)
+        {
+            Message = "It's not your chair";
+            _outline.enabled = true;
+            return;
+        }
+
+        if (!Player.isSitting)
         {
             Player.HandleSit();
-        }
-        else
-        {
-            Message = "It's not your sit";
-            _outline.ActivatedOutline();
+            Message = "";
+            _outline.enabled = false;
         }
     }
 
     public override void OnLoseFocus()
     {
-        _outline.DisableOutline();
+        _outline.enabled = false;
+        Message = "";
     }
 }

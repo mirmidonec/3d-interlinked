@@ -59,7 +59,9 @@ public class PlayerController : MonoBehaviour
     public Transform standPoint;
     public bool isSitting = false;
 
+
     public AudioClip Sit;
+    public bool IsDialogue;
 
 
 
@@ -75,6 +77,11 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        if (IsDialogue)
+        {
+            HandleZoom();
+            return;
+        }
 
         if (isSitting)
         {
@@ -157,6 +164,7 @@ public class PlayerController : MonoBehaviour
         characterController.Move(moveDirection * Time.deltaTime);
     }
 
+    public NpcBehaviour npc;
     public void HandleSit()
     {
         if (sitPoint != null)
@@ -169,6 +177,11 @@ public class PlayerController : MonoBehaviour
             playerCamera.transform.localRotation = Quaternion.identity;
             currentInput = Vector2.zero;
             currentInputRaw = Vector2.zero;
+            if (!npc.gameObject.activeSelf)
+            {
+                npc.gameObject.SetActive(true);
+            }
+            PlayerEntity.Instance.InteractDistance = 4.5f;
         }
     }
 
@@ -179,6 +192,8 @@ public class PlayerController : MonoBehaviour
             isSitting = false;
             transform.position = standPoint.position;
             characterController.enabled = true;
+
+            PlayerEntity.Instance.InteractDistance = 3f;
         }
     }
 

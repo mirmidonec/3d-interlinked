@@ -5,11 +5,12 @@ public class Interactable : MonoBehaviour
 {
     private string _text;
     public event Action<string> OnTextChanged;
-    protected Outline _outline;
+    protected Outline1 _outline;
 
     protected virtual void Awake()
     {
-        _outline = GetComponent<Outline>();
+        _outline = GetComponent<Outline1>();
+        _outline.enabled = false;
     }
 
     public string Message

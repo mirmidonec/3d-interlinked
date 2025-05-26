@@ -4,13 +4,12 @@ public class Gun : Interactable
     public override void OnFocus()
     {
         Message = "Service weapon";
-        _outline.ActiveOutline();
+        _outline.enabled = true;
     }
 
     public override void OnInteract()
     {
         Message = "In a critical situation...";
-        _outline.ActivatedOutline();
 
     }
 
@@ -24,7 +23,7 @@ public class Gun : Interactable
 
     public override void OnLoseFocus()
     {
-        _outline.DisableOutline();
+        _outline.enabled = false;
     }
 
 }

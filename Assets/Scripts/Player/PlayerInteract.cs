@@ -29,6 +29,11 @@ public class PlayerInteract : MonoBehaviour
 
     private void Update()
     {
+
+        if (Player.IsDialogue)
+        {
+            _guidText.text = " ";
+        }
         if (Physics.Raycast(_mainCamera.transform.position, _mainCamera.transform.forward, out RaycastHit hit, PlayerEntity.Instance.InteractDistance))
         {
             HandleRaycastHit(hit);

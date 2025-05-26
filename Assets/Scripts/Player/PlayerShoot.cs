@@ -35,7 +35,7 @@ public class PlayerShoot : MonoBehaviour
     [SerializeField] private int _maxAmmo = 6;
     [SerializeField] private AudioClip _emptyClip;
     [SerializeField] private AudioClip _shootClip;
-      [SerializeField] private AudioClip _enableClip;
+    [SerializeField] private AudioClip _enableClip;
 
     [Header("Camera Shake Settings")]
     [SerializeField] private float _shakeAmount = 3f;
@@ -77,12 +77,12 @@ public class PlayerShoot : MonoBehaviour
 
     private void Start()
     {
-        
+
         _initialLocalPosition = _weaponTransform.localPosition;
         _initialLocalRotation = _weaponTransform.localRotation;
 
         UpdateAmmoUI();
-        
+
     }
 
     private void Update()
@@ -128,6 +128,18 @@ public class PlayerShoot : MonoBehaviour
 
         PlayShootSound();
         ShakeCamera();
+        ShootRaycast();
+    }
+    private void ShootRaycast()
+    {
+        Ray ray = new Ray(_cameraTransform.position, _cameraTransform.forward);
+        if (Physics.Raycast(ray, out RaycastHit hitInfo, 100f))
+        {
+            if (hitInfo.collider.TryGetComponent<NpcBehaviour>(out var npc))
+            {
+                npc.TakeDamage();
+            }
+        }
     }
 
     private IEnumerator DoRecoil()

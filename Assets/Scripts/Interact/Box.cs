@@ -24,19 +24,18 @@ public class Box : Interactable
     public override void OnFocus()
     {
         Message = "Shelf";
-        _outline.ActiveOutline();
+        _outline.enabled = true;
     }
 
     public override void OnInteract()
     {
         ToggleDrawer();
         _source.PlayOneShot(_openSound);
-        _outline.ActivatedOutline();
     }
 
     public override void OnLoseFocus()
     {
-        _outline.DisableOutline();
+        _outline.enabled = false;
     }
 
     public void ToggleDrawer()

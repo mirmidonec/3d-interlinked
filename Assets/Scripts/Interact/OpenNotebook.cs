@@ -73,12 +73,6 @@ public class OpenNotebook : MonoBehaviour
             _isOpened = false;
             targetX = closedX;
             _source.PlayOneShot(_turnPage);
-            _currentPage = 0;
-            for (int i = 0; i < _pages.Length; i++)
-            {
-                _pages[i].SetActive(i == _currentPage);
-            }
-            UpdatePageCountText();
         }
     }
     private void TurnPage()
