@@ -9,8 +9,8 @@ using TMPro;
 public class PlayerInteract : MonoBehaviour
 {
 
-    [SerializeField] private Text _interactionText;
-    [SerializeField] private TMP_Text _guidText;
+    [SerializeField] public Text _interactionText;
+    [SerializeField] public TMP_Text _guidText;
     [SerializeField] private float _typingSpeed;
 
     public PlayerController Player;

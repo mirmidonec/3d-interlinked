@@ -181,7 +181,6 @@ public class PlayerController : MonoBehaviour
             {
                 npc.gameObject.SetActive(true);
             }
-            PlayerEntity.Instance.InteractDistance = 4.5f;
         }
     }
 

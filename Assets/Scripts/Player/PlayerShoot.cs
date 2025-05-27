@@ -61,6 +61,8 @@ public class PlayerShoot : MonoBehaviour
 
     public int CurrentAmmo => _currentAmmo;
 
+    public PlayerController player;
+
 
     private void Awake()
     {
@@ -89,6 +91,14 @@ public class PlayerShoot : MonoBehaviour
     {
         if (!IsEquipped)
             return;
+
+        if (player.isSitting)
+        {
+            UpdateAmmoUI();
+            HandleSway();
+            HandleFireInput();
+            return;
+        }
 
         UpdateAmmoUI();
 

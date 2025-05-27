@@ -143,6 +143,7 @@ public class NpcBehaviour : Interactable
         }
 
         agent.enabled = false;
+        PlayerEntity.Instance.InteractDistance = 4.5f;
     }
 
     public void TakeDamage()

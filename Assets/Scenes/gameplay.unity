@@ -183,7 +183,7 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 12800000, guid: e3265ab4bf004d28a9537516768c1c75, type: 3}
-    m_FontSize: 43
+    m_FontSize: 22
     m_FontStyle: 1
     m_BestFit: 0
     m_MinSize: 10
@@ -461,7 +461,7 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 12800000, guid: e3265ab4bf004d28a9537516768c1c75, type: 3}
-    m_FontSize: 43
+    m_FontSize: 22
     m_FontStyle: 1
     m_BestFit: 0
     m_MinSize: 10
@@ -1180,8 +1180,6 @@ GameObject:
   - component: {fileID: 209627048}
   - component: {fileID: 209627053}
   - component: {fileID: 209627052}
-  - component: {fileID: 209627050}
-  - component: {fileID: 209627051}
   m_Layer: 7
   m_Name: Cube
   m_TagString: Untagged
@@ -1204,42 +1202,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 2100379101}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &209627050
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 209627047}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a392d6b9d75e78d45bec527b981e6e1f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  fadeSpeed: 5
-  highlightSpeed: 10
-  maxSize: 4
---- !u!65 &209627051
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 209627047}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 0.019999998, y: 0.019999996, z: 0.019999994}
-  m_Center: {x: 0.009766712, y: 0.00011992732, z: -0.021283701}
 --- !u!23 &209627052
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -3759,7 +3721,7 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 12800000, guid: e3265ab4bf004d28a9537516768c1c75, type: 3}
-    m_FontSize: 43
+    m_FontSize: 22
     m_FontStyle: 1
     m_BestFit: 0
     m_MinSize: 10
@@ -5571,6 +5533,8 @@ Transform:
   - {fileID: 1531319788}
   - {fileID: 2122093655}
   - {fileID: 1461743649}
+  - {fileID: 1425286380}
+  - {fileID: 1770051359}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1212029870
@@ -5951,6 +5915,7 @@ MonoBehaviour:
   _enableClip: {fileID: 8300000, guid: 82af7266983d9544aa6c2f123ab97919, type: 3}
   _shakeAmount: 8
   _audioSource: {fileID: 1253918242}
+  player: {fileID: 1240878931}
 --- !u!114 &1240878934
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5967,6 +5932,7 @@ MonoBehaviour:
   _revolverInactive: {fileID: 2081613206}
   _notebookActive: {fileID: 2100379100}
   _notebookInactive: {fileID: 919132147609422444}
+  playerInt: {fileID: 1347605447}
 --- !u!1001 &1253918240
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6564,8 +6530,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba54bbb8d59fc1d48a351f7d6a559f82, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  horizontalResolution: 630
-  verticalResolution: 550
+  horizontalResolution: 530
+  verticalResolution: 450
 --- !u!114 &1347605446
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6985,115 +6951,369 @@ MonoBehaviour:
   delayText: {fileID: 1838697608}
   iterations:
   - questions:
-    - questionText: When was the last time you felt fear?
+    - questionText: You're watching TV. Suddenly you notice a wasp crawling on your
+        arm. What do you do?
       effect:
-        pupilChange: 0.15
-        delayChange: 0.4
-        pulseChange: 10
+        pupilChange: 0
+        delayChange: 0
+        pulseChange: 0
       answer:
-        answerText: When someone pointed a gun at me.
+        answerText: I watch it for a moment... then gently brush it off.
         effect:
-          pupilChange: 0.1
-          delayChange: 0.2
-          pulseChange: 5
-    - questionText: Have you ever been betrayed?
+          pupilChange: 0.34690493
+          delayChange: 4.0223985
+          pulseChange: -6.448651
+    - questionText: You're in a desert. You see a tortoise flipped on its back. It
+        can't get up. What do you do?
       effect:
-        pupilChange: 0.1
-        delayChange: 0.3
-        pulseChange: 6
+        pupilChange: 0
+        delayChange: 0
+        pulseChange: 0
       answer:
-        answerText: My sister told everything to the police.
+        answerText: I help it, of course. It needs me.
         effect:
-          pupilChange: 0.12
-          delayChange: 0.2
-          pulseChange: 8
-    - questionText: Can you lie?
+          pupilChange: 0.44472384
+          delayChange: 4.3181677
+          pulseChange: 6.5770483
+    - questionText: Describe in single words, only the good things that come to your
+        mind about your mother.
       effect:
-        pupilChange: -0.05
-        delayChange: 0.5
-        pulseChange: 3
+        pupilChange: 0
+        delayChange: 0
+        pulseChange: 0
       answer:
-        answerText: I can tell the truth when it matters.
+        answerText: Warmth. Love. Kindness. Security.
         effect:
-          pupilChange: 0.07
-          delayChange: 0.4
-          pulseChange: 2
+          pupilChange: 0.4437222
+          delayChange: 4.6210814
+          pulseChange: 60.66655
   - questions:
-    - questionText: Do you feel empathy toward animals?
+    - questionText: You see a child showing you his butterfly collection, including
+        some killed with a pin. What do you do?
       effect:
-        pupilChange: 0.08
-        delayChange: 0.3
-        pulseChange: 2
+        pupilChange: 0
+        delayChange: 0
+        pulseChange: 0
       answer:
-        answerText: I can't stand seeing animals suffer.
+        answerText: I ask why he killed them... and if he feels anything.
         effect:
-          pupilChange: 0.05
-          delayChange: 0.3
-          pulseChange: 4
-    - questionText: Have you ever felt guilty?
+          pupilChange: 0.46960628
+          delayChange: 4.7891192
+          pulseChange: 45.93918
+    - questionText: You see a banquet table filled with roast. A fly is walking across
+        the food. What is your reaction?
       effect:
-        pupilChange: 0.12
-        delayChange: 0.4
-        pulseChange: 6
+        pupilChange: 0
+        delayChange: 0
+        pulseChange: 0
       answer:
-        answerText: Every night before I sleep.
+        answerText: "I\u2019d feel sick and probably lose my appetite."
         effect:
-          pupilChange: 0.08
-          delayChange: 0.2
-          pulseChange: 5
-    - questionText: Do you believe in justice?
+          pupilChange: -0.08273229
+          delayChange: 0.572576
+          pulseChange: 6.121398
+    - questionText: "You\u2019re reading a magazine. You come across a full-page
+        photo of a nude woman. You show it to your friend. He likes it. What do you
+        do?"
       effect:
-        pupilChange: 0.05
-        delayChange: 0.2
-        pulseChange: 1
+        pupilChange: 0
+        delayChange: 0
+        pulseChange: 0
       answer:
-        answerText: I used to.
+        answerText: I ask what he likes about it. Beauty is subjective.
         effect:
-          pupilChange: 0.02
-          delayChange: 0.1
-          pulseChange: 0
+          pupilChange: 0.16598493
+          delayChange: 0.1522932
+          pulseChange: -5.373532
   - questions:
-    - questionText: What did you feel the first time you killed someone?
+    - questionText: A friend gives you calfskin gloves. How do you feel about that?
       effect:
-        pupilChange: 0.2
-        delayChange: 0.7
-        pulseChange: 15
+        pupilChange: 0
+        delayChange: 0
+        pulseChange: 0
       answer:
-        answerText: Silence. Absolute silence.
+        answerText: Uneasy. Why calfskin? Were they necessary?
         effect:
-          pupilChange: 0.1
-          delayChange: 0.5
-          pulseChange: 6
-    - questionText: If you could erase one memory, what would it be?
+          pupilChange: 0.463246
+          delayChange: 4.157393
+          pulseChange: 48.65457
+    - questionText: You see someone drop a bag of groceries. Oranges roll all over
+        the street. What do you do?
       effect:
-        pupilChange: 0.13
-        delayChange: 0.5
-        pulseChange: 7
+        pupilChange: 0
+        delayChange: 0
+        pulseChange: 0
       answer:
-        answerText: When I let my friend down.
+        answerText: I run to help them pick everything up.
         effect:
-          pupilChange: 0.08
-          delayChange: 0.3
-          pulseChange: 4
-    - questionText: Would you save an innocent person if it cost you your life?
+          pupilChange: 0.1811651
+          delayChange: 0.3460335
+          pulseChange: 4.9286156
+    - questionText: You see a man's wallet on the ground. No one is around. What
+        do you do?
       effect:
-        pupilChange: -0.05
-        delayChange: 0.4
-        pulseChange: -3
+        pupilChange: 0
+        delayChange: 0
+        pulseChange: 0
       answer:
-        answerText: I'm not sure.
+        answerText: Pick it up and try to return it. It's not mine.
         effect:
-          pupilChange: -0.02
-          delayChange: 0.2
-          pulseChange: -1
+          pupilChange: 0.32288718
+          delayChange: 4.2696214
+          pulseChange: 56.18741
+  - questions:
+    - questionText: You hear a voice in your head telling you to do something dangerous.
+        What do you do?
+      effect:
+        pupilChange: 0
+        delayChange: 0
+        pulseChange: 0
+      answer:
+        answerText: I try to stay calm and ignore it. Seek help if needed.
+        effect:
+          pupilChange: 0.38642377
+          delayChange: 4.369997
+          pulseChange: -11.854559
+    - questionText: You hear about an animal testing lab near your home. How do you
+        react?
+      effect:
+        pupilChange: 0
+        delayChange: 0
+        pulseChange: 0
+      answer:
+        answerText: With concern. I want to know if it's humane.
+        effect:
+          pupilChange: 0.30498987
+          delayChange: 4.6663795
+          pulseChange: -0.6021824
+    - questionText: "You\u2019re given a test with no clear right answer. You\u2019re
+        being judged. How do you feel?"
+      effect:
+        pupilChange: 0
+        delayChange: 0
+        pulseChange: 0
+      answer:
+        answerText: Nervous, but I try to stay honest and composed.
+        effect:
+          pupilChange: 0.38786548
+          delayChange: 4.640661
+          pulseChange: 14.3720455
+  - questions:
+    - questionText: If you had to hurt one person to save many, would you do it?
+      effect:
+        pupilChange: 0
+        delayChange: 0
+        pulseChange: 0
+      answer:
+        answerText: "It\u2019s a terrible choice, but I hope I\u2019d find a way
+          without hurting anyone."
+        effect:
+          pupilChange: 0.3709038
+          delayChange: 4.9874716
+          pulseChange: 11.984997
+    - questionText: Have you ever lied to protect someone?
+      effect:
+        pupilChange: 0
+        delayChange: 0
+        pulseChange: 0
+      answer:
+        answerText: Yes, sometimes protecting others means bending the truth.
+        effect:
+          pupilChange: 0.34735662
+          delayChange: 4.5497055
+          pulseChange: -5.3988843
+    - questionText: Do you feel remorse when you hurt others?
+      effect:
+        pupilChange: 0
+        delayChange: 0
+        pulseChange: 0
+      answer:
+        answerText: Absolutely, it weighs heavily on me.
+        effect:
+          pupilChange: 0.34665936
+          delayChange: 4.216846
+          pulseChange: -8.38829
+  - questions:
+    - questionText: Can you explain the meaning of empathy?
+      effect:
+        pupilChange: 0
+        delayChange: 0
+        pulseChange: 0
+      answer:
+        answerText: "It\u2019s feeling with others, not just for them."
+        effect:
+          pupilChange: 0.44244814
+          delayChange: 4.5236673
+          pulseChange: 62.916107
+    - questionText: Have you ever taken something without permission?
+      effect:
+        pupilChange: 0
+        delayChange: 0
+        pulseChange: 0
+      answer:
+        answerText: I admit I have, but never without reason.
+        effect:
+          pupilChange: 0.42092562
+          delayChange: 4.924384
+          pulseChange: 67.92784
+    - questionText: What is your favorite color?
+      effect:
+        pupilChange: 0
+        delayChange: 0
+        pulseChange: 0
+      answer:
+        answerText: Blue. It feels calm and deep.
+        effect:
+          pupilChange: 0.025477171
+          delayChange: 0.6607541
+          pulseChange: 0.025671959
+  - questions:
+    - questionText: Do you like music?
+      effect:
+        pupilChange: 0
+        delayChange: 0
+        pulseChange: 0
+      answer:
+        answerText: Yes, it speaks to my soul.
+        effect:
+          pupilChange: 0.12358487
+          delayChange: 0.582406
+          pulseChange: 11.89006
+    - questionText: Have you been to the city recently?
+      effect:
+        pupilChange: 0
+        delayChange: 0
+        pulseChange: 0
+      answer:
+        answerText: Yes, I enjoy the hustle and bustle.
+        effect:
+          pupilChange: -0.029035747
+          delayChange: 0.42443877
+          pulseChange: -9.336903
+    - questionText: Do you enjoy reading books?
+      effect:
+        pupilChange: 0
+        delayChange: 0
+        pulseChange: 0
+      answer:
+        answerText: Definitely. Books open new worlds.
+        effect:
+          pupilChange: 0.14268315
+          delayChange: 0.97855663
+          pulseChange: -12.082712
+  - questions:
+    - questionText: What is your daily routine?
+      effect:
+        pupilChange: 0
+        delayChange: 0
+        pulseChange: 0
+      answer:
+        answerText: Wake up, work, reflect, rest.
+        effect:
+          pupilChange: 0.076882005
+          delayChange: 0.6711216
+          pulseChange: 1.0655899
+    - questionText: How do you usually react to stress?
+      effect:
+        pupilChange: 0
+        delayChange: 0
+        pulseChange: 0
+      answer:
+        answerText: I try to stay calm, but sometimes it overwhelms me.
+        effect:
+          pupilChange: 0.17578036
+          delayChange: 0.9669448
+          pulseChange: -14.126083
+    - questionText: Do you remember your childhood vividly?
+      effect:
+        pupilChange: 0
+        delayChange: 0
+        pulseChange: 0
+      answer:
+        answerText: Some memories are clear, others are blurred.
+        effect:
+          pupilChange: -0.027000725
+          delayChange: 0.32005614
+          pulseChange: 1.5753708
+  - questions:
+    - questionText: What motivates you every day?
+      effect:
+        pupilChange: 0
+        delayChange: 0
+        pulseChange: 0
+      answer:
+        answerText: Hope and a desire to improve.
+        effect:
+          pupilChange: 0.16031009
+          delayChange: 0.29017752
+          pulseChange: 4.040325
+    - questionText: Do you have any fears?
+      effect:
+        pupilChange: 0
+        delayChange: 0
+        pulseChange: 0
+      answer:
+        answerText: Yes, losing those I care about.
+        effect:
+          pupilChange: 0.18979096
+          delayChange: 0.8504535
+          pulseChange: -12.263306
+    - questionText: How do you handle disappointment?
+      effect:
+        pupilChange: 0
+        delayChange: 0
+        pulseChange: 0
+      answer:
+        answerText: I try to learn and move forward.
+        effect:
+          pupilChange: 0.093355775
+          delayChange: 0.627278
+          pulseChange: -11.0974655
+  - questions:
+    - questionText: Are you more logical or emotional?
+      effect:
+        pupilChange: 0
+        delayChange: 0
+        pulseChange: 0
+      answer:
+        answerText: I try to balance both, but emotions guide me more.
+        effect:
+          pupilChange: 0.07357228
+          delayChange: 0.9178238
+          pulseChange: 14.182048
+    - questionText: Do you like animals?
+      effect:
+        pupilChange: 0
+        delayChange: 0
+        pulseChange: 0
+      answer:
+        answerText: Yes, they remind me of innocence.
+        effect:
+          pupilChange: 0.11985433
+          delayChange: 0.5702593
+          pulseChange: -8.738104
+    - questionText: Would you sacrifice yourself for a stranger?
+      effect:
+        pupilChange: 0
+        delayChange: 0
+        pulseChange: 0
+      answer:
+        answerText: If it was the right thing to do, yes.
+        effect:
+          pupilChange: 0.49308473
+          delayChange: 4.3032537
+          pulseChange: 64.67642
   eyeBehaviour: {fileID: 247591341}
   pupilDilation: 0
-  responseDelay: 0
-  pulse: 0
   type: {fileID: 8300000, guid: b41af0f0003947e4f864f0fddd0467d1, type: 3}
   source: {fileID: 1424138659}
   QuestionPanel: {fileID: 1695376689}
   AnswerPanel: {fileID: 2059345842}
+  pulseMin: 70
+  pulseMax: 80
+  pupilMin: 0.5
+  pupilMax: 0.6
+  naturalChangeSpeed: 0.5
 --- !u!114 &1424138655
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7290,7 +7510,7 @@ GameObject:
   - component: {fileID: 1425286379}
   - component: {fileID: 1425286378}
   m_Layer: 0
-  m_Name: Particle System
+  m_Name: rain
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7624,7 +7844,7 @@ ParticleSystem:
     startSize:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 0.1
+      scalar: 0.03
       minScalar: 1
       maxCurve:
         serializedVersion: 2
@@ -7677,7 +7897,7 @@ ParticleSystem:
     startSizeY:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 0.5
+      scalar: 0.3
       minScalar: 1
       maxCurve:
         serializedVersion: 2
@@ -7730,7 +7950,7 @@ ParticleSystem:
     startSizeZ:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 0.1
+      scalar: 0.01
       minScalar: 1
       maxCurve:
         serializedVersion: 2
@@ -12101,12 +12321,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1425286377}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 33.45, y: 8.06, z: 50.55}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1172587708}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1451046409
 GameObject:
@@ -12204,6 +12424,270 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1172587708}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1505121532
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1505121533}
+  - component: {fileID: 1505121537}
+  - component: {fileID: 1505121536}
+  - component: {fileID: 1505121535}
+  - component: {fileID: 1505121534}
+  - component: {fileID: 1505121539}
+  - component: {fileID: 1505121538}
+  m_Layer: 0
+  m_Name: Plane
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &1505121533
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1505121532}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0.70710677, z: -0.70710677, w: 0}
+  m_LocalPosition: {x: 0.00262, y: 0, z: -0.00971}
+  m_LocalScale: {x: 0.0022103433, y: 0.002, z: 0.002}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 6773416664706998618}
+  m_LocalEulerAnglesHint: {x: 90, y: 90, z: -90}
+--- !u!328 &1505121534
+VideoPlayer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1505121532}
+  m_Enabled: 1
+  m_VideoClip: {fileID: 32900000, guid: 1781f21f8f73a2e4ba284ed0918ce91a, type: 3}
+  m_TargetCameraAlpha: 1
+  m_TargetCamera3DLayout: 0
+  m_TargetCamera: {fileID: 0}
+  m_TargetTexture: {fileID: 0}
+  m_TimeReference: 0
+  m_TargetMaterialRenderer: {fileID: 0}
+  m_TargetMaterialProperty: <noninit>
+  m_RenderMode: 3
+  m_AspectRatio: 2
+  m_DataSource: 0
+  m_TimeUpdateMode: 2
+  m_PlaybackSpeed: 1
+  m_AudioOutputMode: 1
+  m_TargetAudioSources:
+  - {fileID: 1505121539}
+  m_DirectAudioVolumes:
+  - 1
+  m_Url: 
+  m_EnabledAudioTracks: 01
+  m_DirectAudioMutes: 00
+  m_ControlledAudioTrackCount: 1
+  m_PlayOnAwake: 1
+  m_SkipOnDrop: 1
+  m_Looping: 0
+  m_WaitForFirstFrame: 1
+  m_FrameReadyEventEnabled: 0
+  m_VideoShaders: []
+--- !u!64 &1505121535
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1505121532}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &1505121536
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1505121532}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &1505121537
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1505121532}
+  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!164 &1505121538
+AudioReverbFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1505121532}
+  m_Enabled: 1
+  m_DryLevel: 0
+  m_Room: -1000
+  m_RoomHF: -454
+  m_DecayTime: 0.4
+  m_DecayHFRatio: 0.83
+  m_ReflectionsLevel: -1646
+  m_ReverbLevel: 53
+  m_ReverbDelay: 0.003
+  m_Diffusion: 100
+  m_Density: 100
+  m_HFReference: 5000
+  m_RoomLF: 0
+  m_LFReference: 250
+  m_ReflectionsDelay: 0
+  m_ReverbPreset: 3
+--- !u!82 &1505121539
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1505121532}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1.2398033
+  MaxDistance: 2.9423332
+  Pan2D: 0
+  rolloffMode: 1
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &1516007043
 GameObject:
   m_ObjectHideFlags: 0
@@ -13415,7 +13899,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 22be9ed80db610041b6c217451d93d4c, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2559285840627121667, guid: 22be9ed80db610041b6c217451d93d4c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -13935,7 +14419,7 @@ Transform:
   m_LocalScale: {x: 0.28000006, y: 0.28, z: 0.28000006}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1172587708}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1774932967
 PrefabInstance:
@@ -15931,7 +16415,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2122093655}
   m_Layer: 0
-  m_Name: sit_positiob_sereja
+  m_Name: sit_position_sereja
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -16741,10 +17225,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ButtonOff: {fileID: 2078848772}
   ButtonOn: {fileID: 5731477648041927701}
-  EyeDetect: {fileID: 5929237408106889511}
-  Pillow: {fileID: 4017675967717449323}
+  EyeDetectAnimator: {fileID: 5929237408106889512}
   Source: {fileID: 2036322350}
-  clip: {fileID: 8300000, guid: 156a729378446dd45a7438dd2150bec9, type: 3}
+  clip1: {fileID: 8300000, guid: 156a729378446dd45a7438dd2150bec9, type: 3}
+  clip2: {fileID: 8300000, guid: 102fcf7a4f1a2c94893ca6fdc855b5c1, type: 3}
   HumsSource: {fileID: 7064539270429749890}
   player: {fileID: 1240878931}
   npc: {fileID: 1750902587}
@@ -16752,6 +17236,7 @@ MonoBehaviour:
   Eye: {fileID: 247591339}
   EyeDetectPump: {fileID: 5531443641461874793}
   redEye: {fileID: 2100000, guid: 6f40de7644cc5ba4c98f3fce2f44066d, type: 2}
+  Igor: {fileID: 1505121532}
 --- !u!1 &919132148075118347
 GameObject:
   m_ObjectHideFlags: 0
@@ -18237,7 +18722,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4017675967717449323}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3163e18c6037e2040b1af9f702311d75, type: 3}
   m_Name: 
@@ -19012,7 +19497,7 @@ Animator:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5929237408106889511}
-  m_Enabled: 0
+  m_Enabled: 1
   m_Avatar: {fileID: 0}
   m_Controller: {fileID: 9100000, guid: a959bd4a797a9e84da0eef99677f22bf, type: 2}
   m_CullingMode: 0
@@ -19192,7 +19677,8 @@ Transform:
   m_LocalPosition: {x: -0.8132388, y: 0.2565438, z: -0.8103268}
   m_LocalScale: {x: 15.208216, y: 15.208216, z: 15.208216}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1505121533}
   m_Father: {fileID: 543450651835358520}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6813512570010762757
@@ -19495,12 +19981,12 @@ AudioSource:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6845693138520847339}
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: b84fc69b4f2a1514d8d8fed073f52083, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 1
+  m_Volume: 0
   m_Pitch: 1
   Loop: 1
   Mute: 0
@@ -20933,9 +21419,7 @@ SceneRoots:
   m_Roots:
   - {fileID: 580318943}
   - {fileID: 1451046410}
-  - {fileID: 1770051359}
   - {fileID: 1172587708}
   - {fileID: 1756000897}
   - {fileID: 1240878927}
   - {fileID: 1750902584}
-  - {fileID: 1425286380}

@@ -22,20 +22,25 @@ public class Pillow : MonoBehaviour
         StartCoroutine(FoldAndUnfold());
     }
 
-    private IEnumerator FoldAndUnfold()
+private IEnumerator FoldAndUnfold()
+{
+    while (true)
     {
-        while (true)
+        if (!Device.Instance.IsOn)
         {
-            // Сгибание
-            yield return StartCoroutine(FoldSequence(true));
-            yield return new WaitForSeconds(0.2f);
-            // Распрямление
-            yield return StartCoroutine(FoldSequence(false));
-            yield return new WaitForSeconds(0.4f);
-
-            if (!loop) break;
+            yield return null; // Ждём следующий кадр, если устройство выключено
+            continue;
         }
+        // Сгибание
+        yield return StartCoroutine(FoldSequence(true));
+        yield return new WaitForSeconds(0.2f);
+        // Распрямление
+        yield return StartCoroutine(FoldSequence(false));
+        yield return new WaitForSeconds(0.4f);
+
+        if (!loop) break;
     }
+}
 
     private IEnumerator FoldSequence(bool fold)
     {

@@ -1,6 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class Device : Interactable
@@ -8,16 +6,15 @@ public class Device : Interactable
     public GameObject ButtonOff;
     public GameObject ButtonOn;
 
-    public GameObject EyeDetect;
-    public GameObject Pillow;
+    public Animator EyeDetectAnimator;
 
     public AudioSource Source;
-    public AudioClip clip;
+    public AudioClip clip1;
+    public AudioClip clip2;
 
     public AudioSource HumsSource;
 
     private Pillow pillowScript;
-    private Animator eyeDetectAnimator;
 
     public PlayerController player;
     public NpcBehaviour npc;
@@ -30,12 +27,15 @@ public class Device : Interactable
 
     public Material redEye;
 
+    public static Device Instance;
+
+    public GameObject Igor;
+
 
     protected override void Awake()
     {
+        Instance = this;
         base.Awake();
-        pillowScript = Pillow.GetComponent<Pillow>();
-        eyeDetectAnimator = EyeDetect.GetComponent<Animator>();
     }
     public override void OnFocus()
     {
@@ -51,9 +51,14 @@ public class Device : Interactable
 
     public override void OnInteractAlt()
     {
+        if (IsOn)
+        {
+            Message = "Alredy ON";
+            return;
+        }
         if (player.isSitting && npc.hasSat)
         {
-         
+
             StartCoroutine(EyeRoutine());
 
         }
@@ -67,21 +72,18 @@ public class Device : Interactable
     {
         ButtonOn.transform.position = new Vector3(0, 0, +1);
         ButtonOff.SetActive(true);
-        Source.PlayOneShot(clip);
+        
+        Source.PlayOneShot(clip1);
         yield return new WaitForSeconds(0.1f);
-
-        //pillowScript.enabled = true;
-        yield return new WaitForSeconds(0.1f);
-        //eyeDetectAnimator.enabled = true;
-        yield return new WaitForSeconds(0.1f);
-      
-
-        //HumsSource.enabled = true;
-        yield return new WaitForSeconds(0.1f);
-        IsOn = true;
+        HumsSource.volume = 0.5f;
+         yield return new WaitForSeconds(0.1f);
+        EyeDetectAnimator.SetTrigger("IsOn");
         yield return new WaitForSeconds(10f);
         Eye.SetActive(true);
         EyeDetectPump.GetComponent<MeshRenderer>().material = redEye;
+        Source.PlayOneShot(clip2);
+        Igor.SetActive(true);
+        IsOn = true;
     }
 
     public override void OnLoseFocus()

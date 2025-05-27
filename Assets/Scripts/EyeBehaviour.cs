@@ -61,12 +61,11 @@ public class EyeBehaviour : MonoBehaviour
         _pupil.anchoredPosition = _iris.anchoredPosition;
     }
 
-    private void AnimatePupil()
-    {
-        _currentDilation = Mathf.Lerp(_currentDilation, _targetDilation, Time.deltaTime * _dilationSpeed);
-        float scale = Mathf.Lerp(_minPupilSize, _maxPupilSize, _currentDilation);
-        _pupil.localScale = new Vector3(scale, scale, 1f);
-    }
+   private void AnimatePupil()
+{
+    _currentDilation = Mathf.Lerp(_currentDilation, _targetDilation, Time.deltaTime * _dilationSpeed);
+    _pupil.localScale = new Vector3(_currentDilation, _currentDilation, 1f);
+}
 
     public void SetPupilTarget(float dilation)
     {

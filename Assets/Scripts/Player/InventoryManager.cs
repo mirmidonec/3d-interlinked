@@ -26,6 +26,8 @@ public class InventoryManager : MonoBehaviour
     public bool IsEquipped => _equippedItem.HasValue;
     public ItemType? EquippedItem => _equippedItem;
 
+    public PlayerInteract playerInt;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -73,7 +75,10 @@ public class InventoryManager : MonoBehaviour
 
         SetItemInactive(itemType, false);
         SetItemActive(itemType, true);
+        playerInt._guidText.text = "";
+        playerInt._interactionText.text = "";
 
+        playerInt.enabled = false;
         _equippedItem = itemType;
     }
 
@@ -90,7 +95,9 @@ public class InventoryManager : MonoBehaviour
             SetItemActive(itemType, false);
             SetItemInactive(itemType, true);
             _equippedItem = null;
+            playerInt.enabled = true;
         }
+        
     }
 
     private IEnumerator DropItemWithDelay(ItemType itemType)
@@ -106,7 +113,7 @@ public class InventoryManager : MonoBehaviour
         }
         SetItemActive(itemType, false);
         SetItemInactive(itemType, true);
-
+        playerInt.enabled = true;
         _equippedItem = null;
     }
 
