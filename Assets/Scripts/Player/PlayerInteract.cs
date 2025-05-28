@@ -8,7 +8,6 @@ using TMPro;
 [DisallowMultipleComponent]
 public class PlayerInteract : MonoBehaviour
 {
-
     [SerializeField] public Text _interactionText;
     [SerializeField] public TMP_Text _guidText;
     [SerializeField] private float _typingSpeed;
@@ -77,7 +76,7 @@ public class PlayerInteract : MonoBehaviour
                 if (_typingCoroutine != null)
                     StopCoroutine(_typingCoroutine);
 
-                _typingCoroutine = StartCoroutine(TypeText(_currentInteractable.Message));
+                    _typingCoroutine = StartCoroutine(TypeText(_currentInteractable.Message));
             }
 
             if (Input.GetButtonDown("Fire1"))

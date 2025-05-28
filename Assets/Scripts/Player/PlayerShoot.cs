@@ -92,14 +92,6 @@ public class PlayerShoot : MonoBehaviour
         if (!IsEquipped)
             return;
 
-        if (player.isSitting)
-        {
-            UpdateAmmoUI();
-            HandleSway();
-            HandleFireInput();
-            return;
-        }
-
         UpdateAmmoUI();
 
         HandleBob();
@@ -200,7 +192,7 @@ public class PlayerShoot : MonoBehaviour
 
     private void HandleBob()
     {
-        if (_characterController.velocity.magnitude > 0.1f && _characterController.isGrounded)
+        if (_characterController.velocity.magnitude > 0.1f && _characterController.isGrounded && _characterController.enabled)
         {
             _bobTimer += Time.deltaTime * _bobSpeed;
 

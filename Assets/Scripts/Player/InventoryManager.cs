@@ -75,6 +75,7 @@ public class InventoryManager : MonoBehaviour
 
         SetItemInactive(itemType, false);
         SetItemActive(itemType, true);
+        playerInt.StopAllCoroutines();
         playerInt._guidText.text = "";
         playerInt._interactionText.text = "";
 

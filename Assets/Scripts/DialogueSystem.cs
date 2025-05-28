@@ -50,7 +50,45 @@ public class DialogueSystem : MonoBehaviour
     private Coroutine pulseBlinkCoroutine;
     private Coroutine pupilBlinkCoroutine;
     private Coroutine delayBlinkCoroutine;
+Coroutine smoothChangeCoroutine;
 
+void StartSmoothChange(float newPulse, float newPupil)
+{
+    if (smoothChangeCoroutine != null)
+        StopCoroutine(smoothChangeCoroutine);
+
+    smoothChangeCoroutine = StartCoroutine(SmoothChange(newPulse, newPupil));
+}
+
+IEnumerator SmoothChange(float targetPulse, float targetPupil)
+{
+    float duration = 1f;
+    float t = 0f;
+
+    float startPulse = pulse;
+    float startPupil = pupilDilation;
+
+    while (t < 1f)
+    {
+        t += Time.deltaTime / duration;
+        pulse = Mathf.Lerp(startPulse, targetPulse, t);
+        pupilDilation = Mathf.Lerp(startPupil, targetPupil, t);
+
+        if (eyeBehaviour != null)
+            eyeBehaviour.SetPupilTarget(pupilDilation);
+
+        UpdateStatsUI();
+        yield return null;
+    }
+
+    pulse = targetPulse;
+    pupilDilation = targetPupil;
+
+    if (eyeBehaviour != null)
+        eyeBehaviour.SetPupilTarget(pupilDilation);
+
+    UpdateStatsUI();
+}
     IEnumerator BlinkText(TMP_Text text)
     {
         Color normalColor = text.color;
@@ -145,6 +183,8 @@ public class DialogueSystem : MonoBehaviour
                 btn.gameObject.SetActive(false);
             return;
         }
+        currentDelay = 0f;
+        UpdateStatsUI();
         dialogueText.text = "";
         var iteration = iterations[currentIteration];
         AnswerPanel.SetActive(false);
@@ -158,8 +198,9 @@ public class DialogueSystem : MonoBehaviour
             questionButtons[i].onClick.RemoveAllListeners();
             questionButtons[i].onClick.AddListener(() => OnQuestionChosen(q));
         }
-    }
 
+    }
+    private float currentDelay = 0f;
     void OnQuestionChosen(QuestionData question)
     {
         foreach (var button in questionButtons)
@@ -181,7 +222,7 @@ public class DialogueSystem : MonoBehaviour
         dialogueText.text = "";
 
         ApplyEffect(question.effect);
-
+        UpdateStatsUI();
 
         AnswerPanel.SetActive(true);
         QuestionPanel.SetActive(false);
@@ -198,11 +239,14 @@ public class DialogueSystem : MonoBehaviour
             dialogueText.text = $"Suspect: {new string('.', (dotCount % 3) + 1)}";
             dotCount++;
             elapsed += typingSpeed;
+
             yield return new WaitForSeconds(typingSpeed);
         }
+
         typingSpeed = 0.04f;
+        currentDelay = delay;
         ApplyEffect(question.answer.effect);
-        UpdateStatsUI(question.answer.effect.delayChange);
+        UpdateStatsUI();
 
         yield return TypeLine($"Suspect: {question.answer.answerText}");
 
@@ -242,17 +286,16 @@ public class DialogueSystem : MonoBehaviour
         yield return WaitForClick();
     }
 
-    void ApplyEffect(DialogueEffect effect, bool updateUI = true)
-    {
-        pupilDilation = Mathf.Clamp(pupilDilation + effect.pupilChange, 0f, 1f);
-        pulse = Mathf.Max(0f, pulse + effect.pulseChange);
+   void ApplyEffect(DialogueEffect effect, bool updateUI = true)
+{
+    float targetPupil = Mathf.Clamp(pupilDilation + effect.pupilChange, 0f, 1f);
+    float targetPulse = Mathf.Max(0f, pulse + effect.pulseChange);
 
-        if (eyeBehaviour != null)
-            eyeBehaviour.SetPupilTarget(pupilDilation);
+    StartSmoothChange(targetPulse, targetPupil);
 
-        if (updateUI)
-            UpdateStatsUI();
-    }
+    if (updateUI)
+        UpdateStatsUI();
+}
 
 
 
@@ -418,7 +461,7 @@ public class DialogueSystem : MonoBehaviour
         Debug.Log("Generated 10 iterations with 3 questions each, Blade Runner style.");
     }
 
-    void UpdateStatsUI(float currentDelay = 0f)
+    void UpdateStatsUI()
     {
         pulseText.text = $"Pulse {(int)pulse} BPM";
         pupilText.text = $"Iris {pupilDilation:F2}";
