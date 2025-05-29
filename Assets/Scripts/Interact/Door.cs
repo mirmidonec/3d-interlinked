@@ -12,6 +12,7 @@ public class Door : Interactable
     [SerializeField] private AudioClip _openSound;
 
     private bool _isOpen = false;
+    public bool IsOpen => _isOpen;
     private Quaternion _closedRotation;
     private Quaternion _openRotation;
     private Coroutine _doorCoroutine;

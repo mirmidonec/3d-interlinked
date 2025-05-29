@@ -11,8 +11,15 @@ public class Crosshair : MonoBehaviour
 
     public Color32 crosshairColor;
 
+    public InventoryManager inv;
+
     private void Update()
     {
+        if (inv.IsEquipped)
+        {
+            crosshairColor.a = 0;
+            return;
+        }
         crosshairPanel.color = crosshairColor;
         RaycastHit raycastHit;
         if (!Physics.Raycast(playerCamera.transform.position, playerCamera.transform.forward, out raycastHit, PlayerEntity.Instance.InteractDistance))

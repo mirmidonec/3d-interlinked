@@ -1,5 +1,4 @@
 
-
 public class Chair : Interactable
 {
     public PlayerController Player;
@@ -9,7 +8,7 @@ public class Chair : Interactable
         {
             Message = "Chair";
             _outline.enabled = true;
-             return;
+            return;
         }
         if (Player.isSitting)
         {
@@ -32,7 +31,7 @@ public class Chair : Interactable
         if (Player.isSitting)
         {
             Message = "";
-           _outline.enabled = false;
+            _outline.enabled = false;
             return;
         }
 
@@ -49,14 +48,25 @@ public class Chair : Interactable
             return;
         }
 
+        bool questCompleted = QuestManager.Instance.IsQuestCompleted(0);
+        bool questStarted = QuestManager.Instance.IsQuestCompletedBefore(0);
+
         if (!Player.isSitting)
         {
-            Player.HandleSit();
-            Message = "";
-            _outline.enabled = false;
+            if (questCompleted || questStarted)
+            {
+                Player.HandleSit();
+                Message = "";
+                _outline.enabled = false;
+            }
+            else
+            {
+                QuestManager.Instance.Init(0);
+                Message = "Inspect room before sit";
+                _outline.enabled = true;
+            }
         }
     }
-
     public override void OnLoseFocus()
     {
         _outline.enabled = false;

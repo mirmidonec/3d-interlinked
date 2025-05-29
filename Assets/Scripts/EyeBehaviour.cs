@@ -14,8 +14,6 @@ public class EyeBehaviour : MonoBehaviour
     [SerializeField] private float _smoothTime = 0.1f;
     [Header("Pupil Dilation")]
     [SerializeField] private float _dilationSpeed = 5f;
-    [SerializeField] private float _minPupilSize = 0.8f;
-    [SerializeField] private float _maxPupilSize = 1.2f;
     [Header("Blinking Settings")]
     [SerializeField] private float _minBlinkInterval = 5f;
     [SerializeField] private float _maxBlinkInterval = 10f;

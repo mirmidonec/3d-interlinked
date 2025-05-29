@@ -73,6 +73,10 @@ public class OpenNotebook : MonoBehaviour
             _isOpened = false;
             targetX = closedX;
             _source.PlayOneShot(_turnPage);
+            if (QuestManager.Instance.IsQuestCompleted(0) == false && QuestManager.Instance.IsQuestCompletedBefore(0) == false)
+            {
+                QuestManager.Instance.CompleteStep(0);
+            }
         }
     }
     private void TurnPage()

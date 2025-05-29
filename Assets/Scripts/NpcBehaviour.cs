@@ -32,6 +32,14 @@ public class NpcBehaviour : Interactable
 
     public GameObject Dialogue;
 
+    private BoxCollider _box;
+
+    protected override void Awake()
+    {
+        base.Awake();
+        _box = GetComponent<BoxCollider>();
+    }
+
 
     void Start()
     {
@@ -55,8 +63,10 @@ public class NpcBehaviour : Interactable
         {
             hasOpenedDoor = true;
             agent.isStopped = true;
-
-            doorScript.OnInteract();
+            if (!doorScript.IsOpen)
+            {
+                doorScript.OnInteract();
+            }
             StartCoroutine(ContinueAfterDelay(1.0f, chairTarget.position));
         }
 
@@ -100,20 +110,31 @@ public class NpcBehaviour : Interactable
         _outline.enabled = true;
 
     }
-     public override void OnLoseFocus()
+    public override void OnLoseFocus()
     {
         _outline.enabled = false;
     }
 
+    public DialogueSystem dialogue;
     public override void OnInteractAlt()
     {
-        if (hasSat && device.IsOn)
+        if (hasSat && device.IsOn && player.isSitting && !dialogue.IsDone)
         {
             player.IsDialogue = true;
             Cursor.lockState = CursorLockMode.Confined;
             Cursor.visible = true;
             Dialogue.SetActive(true);
             Message = "";
+        }
+        else if (dialogue.IsDone)
+        {
+            Message = "You can go home now";
+            QuestManager.Instance.CompleteStep(0);
+            StandUpAndLeave();
+        }
+        else
+        {
+            Message = "Can't do this now";
         }
 
     }
@@ -123,7 +144,57 @@ public class NpcBehaviour : Interactable
         player.IsDialogue = false;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-            Dialogue.SetActive(false);
+        Dialogue.SetActive(false);
+    }
+
+    public void StandUpAndLeave()
+    {
+        if (isDead) return;
+
+        StopAllCoroutines();
+
+        if (!agent.enabled)
+            agent.enabled = true;
+
+        hasSat = false;
+        hasOpenedDoor = false;
+        StartCoroutine(StandUpAndGoBackRoutine());
+    }
+
+    private IEnumerator StandUpAndGoBackRoutine()
+    {
+        animator.SetTrigger("stand");
+        yield return new WaitForSeconds(1.5f);
+
+        transform.position = sitPoint.position + sitPoint.forward * 0.5f;
+
+        agent.isStopped = false;
+        agent.SetDestination(doorTarget.position);
+
+        while (Vector3.Distance(transform.position, doorTarget.position) > interactionDistance)
+        {
+            animator.SetBool("isWalking", agent.velocity.magnitude > 0.1f);
+            yield return null;
+        }
+
+        animator.SetBool("isWalking", false);
+
+        if (!doorScript.IsOpen)
+        {
+            doorScript.OnInteract();
+            yield return new WaitForSeconds(1f);
+        }
+
+        Vector3 passThroughPoint = doorTarget.position + doorTarget.forward * 1.0f;
+        agent.SetDestination(passThroughPoint);
+
+        while (Vector3.Distance(transform.position, passThroughPoint) > 0.1f)
+        {
+            animator.SetBool("isWalking", agent.velocity.magnitude > 0.1f);
+            yield return null;
+        }
+
+        animator.SetBool("isWalking", false);
     }
 
 
@@ -136,6 +207,9 @@ public class NpcBehaviour : Interactable
         transform.position = sitPoint.position;
         transform.rotation = sitPoint.rotation;
 
+        _box.size = new Vector3(2f, 7.3f, 2f);
+        _box.center = new Vector3(-0.1f, 3f, 0.02f);
+
         // Add sitting sound
         if (footSource != null && sitClip != null)
         {
@@ -143,9 +217,11 @@ public class NpcBehaviour : Interactable
         }
 
         agent.enabled = false;
+
+        QuestManager.Instance.CompleteStep(0);
         PlayerEntity.Instance.InteractDistance = 4.5f;
     }
-
+    public AudioClip dying;
     public void TakeDamage()
     {
         if (isDead) return;
@@ -153,6 +229,8 @@ public class NpcBehaviour : Interactable
         isDead = true;
         animator.SetBool("isWalking", false);
         animator.SetTrigger("die");
+        footSource.PlayOneShot(dying);
+        QuestManager.Instance.CompleteStep(1);
 
         if (agent.isActiveAndEnabled && agent.isOnNavMesh)
         {

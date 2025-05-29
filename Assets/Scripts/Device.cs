@@ -56,27 +56,28 @@ public class Device : Interactable
             Message = "Alredy ON";
             return;
         }
-        if (player.isSitting && npc.hasSat)
+
+        if (player.isSitting && npc.hasSat && !ButtonOff.activeSelf)
         {
-
             StartCoroutine(EyeRoutine());
-
+        }
+        else if (ButtonOff.activeSelf)
+        {
+            Message = "Loading system...";
         }
         else
         {
-            Message = "Sit down and wait for suspect before use";
+            Message = "Can't do this now";
         }
     }
-
     private IEnumerator EyeRoutine()
     {
         ButtonOn.transform.position = new Vector3(0, 0, +1);
         ButtonOff.SetActive(true);
-        
         Source.PlayOneShot(clip1);
         yield return new WaitForSeconds(0.1f);
         HumsSource.volume = 0.5f;
-         yield return new WaitForSeconds(0.1f);
+        yield return new WaitForSeconds(0.1f);
         EyeDetectAnimator.SetTrigger("IsOn");
         yield return new WaitForSeconds(10f);
         Eye.SetActive(true);
@@ -84,6 +85,7 @@ public class Device : Interactable
         Source.PlayOneShot(clip2);
         Igor.SetActive(true);
         IsOn = true;
+        QuestManager.Instance.CompleteStep(1);
     }
 
     public override void OnLoseFocus()

@@ -167,20 +167,39 @@ public class PlayerController : MonoBehaviour
     public NpcBehaviour npc;
     public void HandleSit()
     {
+    bool questCompleted = QuestManager.Instance.IsQuestCompleted(1);
+    bool questStarted = QuestManager.Instance.IsQuestCompletedBefore(1);
         if (sitPoint != null)
         {
+            if (questCompleted || questStarted)
+            {
+
+            }
+            else
+            {
+                QuestManager.Instance.Init(1);
+            }
             footSource.PlayOneShot(Sit);
             isSitting = true;
+            rotationZ = 0f;
+            transform.localRotation = Quaternion.Euler(0f, 0f, 0f);
             characterController.enabled = false;
             transform.position = sitPoint.position;
             transform.rotation = sitPoint.rotation;
             playerCamera.transform.localRotation = Quaternion.identity;
             currentInput = Vector2.zero;
             currentInputRaw = Vector2.zero;
+
             if (!npc.gameObject.activeSelf)
             {
                 npc.gameObject.SetActive(true);
             }
+            if (npc.hasSat)
+            {
+                PlayerEntity.Instance.InteractDistance = 4.5f;
+            }
+
+
         }
     }
 

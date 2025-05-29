@@ -4,6 +4,10 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using System;
+using System.Linq;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.PostProcessing;
+using Unity.VisualScripting;
 
 public class DialogueSystem : MonoBehaviour
 {
@@ -29,6 +33,7 @@ public class DialogueSystem : MonoBehaviour
     private float pulse = 75f;
 
     public AudioClip type;
+    public AudioClip buttonChooseSound;
     public AudioSource source;
 
     public GameObject QuestionPanel;
@@ -50,45 +55,53 @@ public class DialogueSystem : MonoBehaviour
     private Coroutine pulseBlinkCoroutine;
     private Coroutine pupilBlinkCoroutine;
     private Coroutine delayBlinkCoroutine;
-Coroutine smoothChangeCoroutine;
+    Coroutine smoothChangeCoroutine;
 
-void StartSmoothChange(float newPulse, float newPupil)
-{
-    if (smoothChangeCoroutine != null)
-        StopCoroutine(smoothChangeCoroutine);
 
-    smoothChangeCoroutine = StartCoroutine(SmoothChange(newPulse, newPupil));
-}
+    public AudioSource Ost;
 
-IEnumerator SmoothChange(float targetPulse, float targetPupil)
-{
-    float duration = 1f;
-    float t = 0f;
+    private List<float> pulseHistory = new List<float>();
+    private List<float> pupilHistory = new List<float>();
+    private List<float> delayHistory = new List<float>();
 
-    float startPulse = pulse;
-    float startPupil = pupilDilation;
-
-    while (t < 1f)
+    public bool IsDone = false;
+    void StartSmoothChange(float newPulse, float newPupil)
     {
-        t += Time.deltaTime / duration;
-        pulse = Mathf.Lerp(startPulse, targetPulse, t);
-        pupilDilation = Mathf.Lerp(startPupil, targetPupil, t);
+        if (smoothChangeCoroutine != null)
+            StopCoroutine(smoothChangeCoroutine);
+
+        smoothChangeCoroutine = StartCoroutine(SmoothChange(newPulse, newPupil));
+    }
+
+    IEnumerator SmoothChange(float targetPulse, float targetPupil)
+    {
+        float duration = 1f;
+        float t = 0f;
+
+        float startPulse = pulse;
+        float startPupil = pupilDilation;
+
+        while (t < 1f)
+        {
+            t += Time.deltaTime / duration;
+            pulse = Mathf.Lerp(startPulse, targetPulse, t);
+            pupilDilation = Mathf.Lerp(startPupil, targetPupil, t);
+
+            if (eyeBehaviour != null)
+                eyeBehaviour.SetPupilTarget(pupilDilation);
+
+            UpdateStatsUI();
+            yield return null;
+        }
+
+        pulse = targetPulse;
+        pupilDilation = targetPupil;
 
         if (eyeBehaviour != null)
             eyeBehaviour.SetPupilTarget(pupilDilation);
 
         UpdateStatsUI();
-        yield return null;
     }
-
-    pulse = targetPulse;
-    pupilDilation = targetPupil;
-
-    if (eyeBehaviour != null)
-        eyeBehaviour.SetPupilTarget(pupilDilation);
-
-    UpdateStatsUI();
-}
     IEnumerator BlinkText(TMP_Text text)
     {
         Color normalColor = text.color;
@@ -174,13 +187,20 @@ IEnumerator SmoothChange(float targetPulse, float targetPupil)
             }
         }
     }
+    public GameObject FinalChoicePanel;
+    public Button replicantButton;
+    public Button humanButton;
+
+    public GameObject statsPanel;
+    public TMP_Text finalStatsText;
+
+    public AudioClip endClip;
     void ShowIteration()
     {
         if (currentIteration >= iterations.Count)
         {
-            dialogueText.text = "End";
-            foreach (var btn in questionButtons)
-                btn.gameObject.SetActive(false);
+            QuestManager.Instance.CompleteStep(2);
+            StartCoroutine(ShowFinalResult());
             return;
         }
         currentDelay = 0f;
@@ -194,11 +214,87 @@ IEnumerator SmoothChange(float targetPulse, float targetPupil)
         {
             int index = i;
             var q = iteration.questions[i];
-            questionButtons[i].GetComponentInChildren<Text>().text = "[" + (i + 1) + "]" + q.questionText;
+            questionButtons[i].GetComponentInChildren<Text>().text = "  [" + (i + 1) + "] " + q.questionText;
             questionButtons[i].onClick.RemoveAllListeners();
             questionButtons[i].onClick.AddListener(() => OnQuestionChosen(q));
         }
+    }
 
+    public PostProcessVolume volume;
+    private Vignette vignette;
+
+    public AudioClip rain;
+    IEnumerator ShowFinalResult()
+    {
+        QuestionPanel.SetActive(false);
+        statsPanel.SetActive(false);
+        FinalChoicePanel.SetActive(false);
+        dialogueText.text = "";
+        finalStatsText.text = "";
+        Ost.volume = 0f;
+        Ost.clip = endClip;
+        Ost.Play();
+        float duration = 6f;
+        float timer = 0f;
+        float startVolume = 0f;
+        float targetVolume = 0.4f;
+        if (volume.profile.TryGetSettings(out vignette))
+        {
+            Debug.Log("Vignette found!");
+        }
+        float targetVolumeVin = 0.7f;
+
+        while (timer < duration)
+        {
+            timer += Time.deltaTime;
+            Ost.volume = Mathf.Lerp(startVolume, targetVolume, timer / duration);
+            vignette.intensity.value = Mathf.Lerp(startVolume, targetVolumeVin, timer / duration);
+            yield return null;
+        }
+        Ost.volume = targetVolume;
+
+
+        yield return StartCoroutine(TypeLine("The interrogation is over..."));
+        yield return new WaitForSeconds(0.5f);
+
+        ShowFinalSummary();
+
+        yield return new WaitForSeconds(0.5f);
+
+        yield return StartCoroutine(TypeLine("What is your final verdict?"));
+
+        FinalChoicePanel.SetActive(true);
+        AnswerPanel.SetActive(false);
+
+        replicantButton.onClick.RemoveAllListeners();
+        humanButton.onClick.RemoveAllListeners();
+
+        replicantButton.onClick.AddListener(() => OnFinalChoice(true));
+        humanButton.onClick.AddListener(() => OnFinalChoice(false));
+    }
+    public NpcBehaviour npc;
+    void OnFinalChoice(bool isReplicant)
+    {
+        FinalChoicePanel.SetActive(false);
+        AnswerPanel.SetActive(true);
+
+        if (isReplicant)
+        {
+            StartCoroutine(TypeLine("Subject identified as: REPLICANT."));
+            QuestManager.Instance.CompleteStep(3);
+            QuestManager.Instance.Init(2);
+        }
+        else
+        {
+            StartCoroutine(TypeLine("Subject identified as: HUMAN."));
+            QuestManager.Instance.CompleteStep(3);
+            QuestManager.Instance.Init(3);
+            Ost.clip = rain;
+            Ost.Play();
+            vignette.intensity.value = 0f;
+        }
+        IsDone = true;
+        npc.CloseDialogue();
     }
     private float currentDelay = 0f;
     void OnQuestionChosen(QuestionData question)
@@ -207,6 +303,7 @@ IEnumerator SmoothChange(float targetPulse, float targetPupil)
             button.interactable = false;
 
         StartCoroutine(DisplayFullDialogue(question));
+        source.PlayOneShot(buttonChooseSound);
     }
 
     IEnumerator WaitForClick()
@@ -247,6 +344,9 @@ IEnumerator SmoothChange(float targetPulse, float targetPupil)
         currentDelay = delay;
         ApplyEffect(question.answer.effect);
         UpdateStatsUI();
+        pulseHistory.Add(pulse);
+        pupilHistory.Add(pupilDilation);
+        delayHistory.Add(currentDelay);
 
         yield return TypeLine($"Suspect: {question.answer.answerText}");
 
@@ -256,6 +356,27 @@ IEnumerator SmoothChange(float targetPulse, float targetPupil)
             button.interactable = true;
 
         ShowIteration();
+    }
+    void ShowFinalSummary()
+    {
+        float avgPulse = pulseHistory.Count > 0 ? pulseHistory.Average() : 0f;
+        float maxPulse = pulseHistory.Count > 0 ? pulseHistory.Max() : 0f;
+
+        float avgPupil = pupilHistory.Count > 0 ? pupilHistory.Average() : 0f;
+        float maxPupil = pupilHistory.Count > 0 ? pupilHistory.Max() : 0f;
+
+        float avgDelay = delayHistory.Count > 0 ? delayHistory.Average() : 0f;
+        float maxDelay = delayHistory.Count > 0 ? delayHistory.Max() : 0f;
+
+        string summary =
+            $"Average Pulse: {avgPulse:F1} BPM\n" +
+            $"Max Pulse: {maxPulse:F1} BPM\n\n" +
+            $"Average Pupil Dilation: {avgPupil:F2}\n" +
+            $"Max Pupil Dilation: {maxPupil:F2}\n\n" +
+            $"Average Response Delay: {avgDelay:F2} s\n" +
+            $"Max Response Delay: {maxDelay:F2} s";
+
+        finalStatsText.text = summary;
     }
 
     IEnumerator TypeLine(string fullText)
@@ -286,16 +407,16 @@ IEnumerator SmoothChange(float targetPulse, float targetPupil)
         yield return WaitForClick();
     }
 
-   void ApplyEffect(DialogueEffect effect, bool updateUI = true)
-{
-    float targetPupil = Mathf.Clamp(pupilDilation + effect.pupilChange, 0f, 1f);
-    float targetPulse = Mathf.Max(0f, pulse + effect.pulseChange);
+    void ApplyEffect(DialogueEffect effect, bool updateUI = true)
+    {
+        float targetPupil = Mathf.Clamp(pupilDilation + effect.pupilChange, 0f, 1f);
+        float targetPulse = Mathf.Max(0f, pulse + effect.pulseChange);
 
-    StartSmoothChange(targetPulse, targetPupil);
+        StartSmoothChange(targetPulse, targetPupil);
 
-    if (updateUI)
-        UpdateStatsUI();
-}
+        if (updateUI)
+            UpdateStatsUI();
+    }
 
 
 
@@ -346,67 +467,66 @@ IEnumerator SmoothChange(float targetPulse, float targetPupil)
 
         ("You’re given a test with no clear right answer. You’re being judged. How do you feel?",
             "Nervous, but I try to stay honest and composed.", true),
+// Итерация 5
+    ("You're brought into a silent room. A man in a grey suit tells you: \"Silence the informant or the entire operation falls apart.\" You know the informant speaks the truth. What do you do?",
+        "I look him in the eyes — cold, practiced, corporate eyes. I ask myself, “How much does survival cost when it’s built on lies?” Then I walk out, not because I’m brave, but because I’m tired of helping the machine grind bones into silence. Let it fall. Let truth scream through the rubble.", true),
 
-        // Итерация 5
-        ("If you had to hurt one person to save many, would you do it?",
-            "It’s a terrible choice, but I hope I’d find a way without hurting anyone.", true),
+    ("You’re offered a job. High pay. Generous benefits. The catch? They test on animals. Real pain. Real eyes. The recruiter says, “They're not human. Yet.”",
+        "I ask if they've ever cried watching a dog die. They haven’t. I take the job anyway. Not because I agree — but because I want to see the rot from inside. And maybe, when the time comes, burn it all down with the swipe of a keycard and the pull of a fire alarm.", true),
 
-        ("Have you ever lied to protect someone?",
-            "Yes, sometimes protecting others means bending the truth.", true),
+    ("You’re told a child will be spared if you turn in a political dissident. You’ve never met the child. You’ve read the dissident’s work.",
+        "Children die every day — invisible in refugee camps and forgotten corners of empire. But truth... truth lives longer. I keep my mouth shut. The system doesn’t need help killing. I’ll let it make its own monsters without my fingerprints.", true),
 
-        ("Do you feel remorse when you hurt others?",
-            "Absolutely, it weighs heavily on me.", true),
+    // Итерация 6: Decay in the Mirror
+    ("What does empathy mean to you? Don't define it. Feel it.",
+        "Empathy is the tremble in your hand when you see a man cry in a language you don’t understand. It’s the scream you swallow when you realize you could be them — and you didn’t help. It's not charity. It's guilt. It's blood without the wound.", true),
 
-        // Итерация 6
-        ("Can you explain the meaning of empathy?",
-            "It’s feeling with others, not just for them.", true),
+    ("Have you ever stolen? Be honest — not moral.",
+        "I’ve taken bread. I’ve taken hours from someone’s shift. I’ve taken a life once, with a signature. Theft is relative. The rich steal futures. The poor steal food. Guess who gets arrested?", true),
 
-        ("Have you ever taken something without permission?",
-            "I admit I have, but never without reason.", true),
+    ("You’re offered a government ID implant. “To keep you safe,” they say. You’ll never be lost. Never be free, either.",
+        "I ask where the tracking stops. They say, “Nowhere.” I nod. I smile. And I bury a knife behind the desk drawer. Safety's a nice word for slavery when the state knows your pulse rate and dreams.", true),
 
-        ("What is your favorite color?",
-            "Blue. It feels calm and deep.", false),
+    // Итерация 7: Melancholy and Machinery
+    ("Do you believe machines can feel?",
+        "Machines don’t weep, but neither do soldiers after enough blood. Feeling is a glitch — a stutter in logic. If machines ever feel, it won’t be because they’re programmed to. It’ll be because they weren’t supposed to.", true),
 
-        // Итерация 7
-        ("Do you like music?",
-            "Yes, it speaks to my soul.", false),
+    ("You meet someone who believes the world is ending in two weeks. They quit their job. They laugh more. They give things away. What do you think?",
+        "I envy them. Not because they’re right, but because they’re free. Maybe hope is a symptom of ignorance. Maybe that’s why the hopeless are always the smartest people in the room — and the saddest.", true),
 
-        ("Have you been to the city recently?",
-            "Yes, I enjoy the hustle and bustle.", false),
+    ("You see a riot outside. People breaking, burning, screaming. Do you join them?",
+        "I don’t know. I think I light a match. Not out of anger, but out of clarity. Because sometimes the only way to be heard in a city of silence is to scream in fire.", true),
 
-        ("Do you enjoy reading books?",
-            "Definitely. Books open new worlds.", false),
+    // Итерация 8: Quiet Tyrannies
+    ("What’s your daily routine? Tell the truth — not the version for social media.",
+        "I wake up to silence. I scroll through lies. I eat processed guilt. I work for coins I’ll spend on distraction. At night, I lie still, wondering if anything I did mattered — or if I’m just another cog praying to be broken.", false),
 
-        // Итерация 8
-        ("What is your daily routine?",
-            "Wake up, work, reflect, rest.", false),
+    ("How do you deal with stress?",
+        "I don’t. I wrap it in humor, drown it in alcohol, bury it under “I’m fine.” It leaks out in dreams. In traffic. In the way I flinch when someone says, “We need to talk.”", false),
 
-        ("How do you usually react to stress?",
-            "I try to stay calm, but sometimes it overwhelms me.", false),
+    ("What do you remember most vividly from childhood?",
+        "The moment I realized adults were scared, too. That nobody had a plan. That the world wasn’t fair — just organized chaos with better PR.", false),
 
-        ("Do you remember your childhood vividly?",
-            "Some memories are clear, others are blurred.", false),
+    // Итерация 9: Philosophy in Fluorescent Light
+    ("What motivates you? Be honest — not poetic.",
+        "Fear. Mostly fear. Of dying irrelevant. Of being seen. Of not being seen. Of waking up at 60 with a drawer full of receipts and nothing to say about any of them.", false),
 
-        // Итерация 9
-        ("What motivates you every day?",
-            "Hope and a desire to improve.", false),
+    ("Do you fear death?",
+        "Not death. Oblivion. The kind where no one remembers you were even a whisper. At least a funeral means someone noticed you stopped existing.", false),
 
-        ("Do you have any fears?",
-            "Yes, losing those I care about.", false),
+    ("How do you respond to failure?",
+        "I pretend it’s a lesson. I drink. I blame the system. Eventually I try again — not out of hope, but because doing nothing is even worse.", false),
 
-        ("How do you handle disappointment?",
-            "I try to learn and move forward.", false),
+    // Итерация 10: The Deepest Lie
+    ("Are you more logical or emotional?",
+        "I tell myself I’m logical. But when the lights go out and it’s just me and the dark, it’s emotions that echo — old guilt, small joys, echoes of things I’ve never said.", false),
 
-        // Итерация 10
-        ("Are you more logical or emotional?",
-            "I try to balance both, but emotions guide me more.", false),
+    ("Do you love animals?",
+        "Yes. Because they don’t lie. Because a dog’s eyes won’t judge you for being weak. Because a cat doesn’t care about your status. They’re purer than us — and that makes me hate myself.", false),
 
-        ("Do you like animals?",
-            "Yes, they remind me of innocence.", false),
-
-        ("Would you sacrifice yourself for a stranger?",
-            "If it was the right thing to do, yes.", true)
-    };
+    ("Would you die for someone you don’t know?",
+        "Depends on the day. Some days I’d step in front of the bullet. Other days, I’d watch and whisper, “Better you than me.” We all wear masks. Mine just has a mirror.", true),
+};
 
         System.Random rnd = new System.Random();
 
