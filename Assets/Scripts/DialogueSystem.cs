@@ -5,9 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System;
 using System.Linq;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
-using Unity.VisualScripting;
 
 public class DialogueSystem : MonoBehaviour
 {
@@ -242,6 +240,7 @@ public class DialogueSystem : MonoBehaviour
         {
             Debug.Log("Vignette found!");
         }
+
         float targetVolumeVin = 0.7f;
 
         while (timer < duration)
@@ -283,6 +282,7 @@ public class DialogueSystem : MonoBehaviour
             StartCoroutine(TypeLine("Subject identified as: REPLICANT."));
             QuestManager.Instance.CompleteStep(3);
             QuestManager.Instance.Init(2);
+            CameraEffectManager.Instance.StartRed();
         }
         else
         {
@@ -305,7 +305,6 @@ public class DialogueSystem : MonoBehaviour
         StartCoroutine(DisplayFullDialogue(question));
         source.PlayOneShot(buttonChooseSound);
     }
-
     IEnumerator WaitForClick()
     {
         isWaitingForClick = true;

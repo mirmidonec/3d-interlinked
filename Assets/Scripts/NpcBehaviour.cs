@@ -58,7 +58,10 @@ public class NpcBehaviour : Interactable
 
         animator.SetBool("isWalking", agent.velocity.magnitude > 0.1f);
         HandleFootsteps();
-
+        if (isGoingBack)
+        {
+            return;
+        }
         if (!hasOpenedDoor && Vector3.Distance(transform.position, doorTarget.position) < interactionDistance)
         {
             hasOpenedDoor = true;
@@ -146,7 +149,6 @@ public class NpcBehaviour : Interactable
         Cursor.visible = false;
         Dialogue.SetActive(false);
     }
-
     public void StandUpAndLeave()
     {
         if (isDead) return;
@@ -161,11 +163,13 @@ public class NpcBehaviour : Interactable
         StartCoroutine(StandUpAndGoBackRoutine());
     }
 
+    public Transform startPos;
+    public bool isGoingBack = false;
+
     private IEnumerator StandUpAndGoBackRoutine()
     {
-        animator.SetTrigger("stand");
-        yield return new WaitForSeconds(1.5f);
-
+        isGoingBack = true;
+        animator.SetBool("isWalking", true);
         transform.position = sitPoint.position + sitPoint.forward * 0.5f;
 
         agent.isStopped = false;
@@ -177,24 +181,23 @@ public class NpcBehaviour : Interactable
             yield return null;
         }
 
-        animator.SetBool("isWalking", false);
-
         if (!doorScript.IsOpen)
         {
             doorScript.OnInteract();
             yield return new WaitForSeconds(1f);
         }
 
-        Vector3 passThroughPoint = doorTarget.position + doorTarget.forward * 1.0f;
-        agent.SetDestination(passThroughPoint);
-
-        while (Vector3.Distance(transform.position, passThroughPoint) > 0.1f)
+        agent.SetDestination(startPos.position);
+        yield return new WaitForSeconds(0.5f);
+        doorScript.OnInteract();
+        while (Vector3.Distance(transform.position, startPos.position) > 0.1f)
         {
             animator.SetBool("isWalking", agent.velocity.magnitude > 0.1f);
             yield return null;
         }
 
         animator.SetBool("isWalking", false);
+        Destroy(gameObject);
     }
 
 
