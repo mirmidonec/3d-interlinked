@@ -19,22 +19,24 @@ public class Ending : MonoBehaviour
 
     [Header("Настройки")]
     public float typingSpeed = 0.05f;
-    public string variableValue = "a human";
+    public string variableValue;
 
     private void Start()
     {
         firstTMP.text = "";
         secondTMP.text = "";
-        StartCoroutine(TypeSequence());
     }
-
+    public void StartEnd()
+    {
+         StartCoroutine(TypeSequence());
+    }
     private IEnumerator TypeSequence()
     {
 
         yield return StartCoroutine(TypeTextWithRichTags(firstTMP, firstText));
 
         string colorHex;
-        if (variableValue.ToLower() == "replicant")
+        if (variableValue.ToLower() == "a replicant")
             colorHex = "#FF0000";
         else if (variableValue.ToLower() == "a human")
             colorHex = "#00FF00"; 

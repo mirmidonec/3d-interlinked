@@ -197,6 +197,7 @@ public class NpcBehaviour : Interactable
         }
 
         animator.SetBool("isWalking", false);
+        CameraEffectManager.Instance.StartEnd();
         Destroy(gameObject);
     }
 
@@ -240,7 +241,7 @@ public class NpcBehaviour : Interactable
             agent.isStopped = true;
             agent.enabled = false;
         }
-
+        CameraEffectManager.Instance.StartEnd();
         Destroy(gameObject, 5f);
     }
 }

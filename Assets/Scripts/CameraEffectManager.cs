@@ -1,8 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
+using UnityEngine.UI;
 
 public class CameraEffectManager : MonoBehaviour
 {
@@ -10,6 +10,13 @@ public class CameraEffectManager : MonoBehaviour
     private ColorGrading colorGrading;
 
     public static CameraEffectManager Instance;
+
+    [SerializeField] private Image _blackScreen;
+
+    public GameObject endPanel;
+    [SerializeField] private float fadeDuration;
+
+    public PlayerController player;
     private void Awake()
     {
         Instance = this;
@@ -17,6 +24,11 @@ public class CameraEffectManager : MonoBehaviour
     public void StartRed()
     {
         StartCoroutine(RedScreenRoutine());
+    }
+    [ContextMenu("a")]
+      public void StartEnd()
+    {
+        StartCoroutine(EndScreenRoutine());
     }
     public IEnumerator RedScreenRoutine()
     {
@@ -40,5 +52,40 @@ public class CameraEffectManager : MonoBehaviour
 
         colorGrading.colorFilter.value = targetColor;
     }
+    public Ending end;
+
+    public AudioSource source;
+    public AudioClip endSound;
+    public GameObject gun;
+    public GameObject note;
+    public IEnumerator EndScreenRoutine()
+    {
+
+        yield return new WaitForSeconds(4f);
+        note.SetActive(false);
+        gun.SetActive(false);
+        source.clip = endSound;
+        source.Play();
+        player.enabled = false;
+        endPanel.SetActive(true);
+        Color color = _blackScreen.color;
+        float t = 0f;
+
+        while (t < fadeDuration)
+        {
+            t += Time.deltaTime;
+            float alpha = Mathf.Lerp(0f, 1f, t / fadeDuration);
+            _blackScreen.color = new Color(color.r, color.g, color.b, alpha);
+            yield return null;
+        }
+        end.StartEnd();
+        _blackScreen.color = new Color(color.r, color.g, color.b, 1f);
+        yield return new WaitForSeconds(5f);
+        Debug.Log("End");
+    }
+
+
+
+
 
 }
