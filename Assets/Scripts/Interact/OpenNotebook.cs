@@ -23,12 +23,17 @@ public class OpenNotebook : MonoBehaviour
     public bool IsOpen => _isOpened;
 
     private bool _isForward = true;
+    public GameObject crosshair;
 
     private void OnEnable()
     {
+        crosshair.SetActive(false);
         _source.PlayOneShot(_turnPage);
     }
-
+    private void OnDisable()
+    {
+        crosshair.SetActive(true);
+    }
     private void Awake()
     {
         _source = GetComponent<AudioSource>();
@@ -73,10 +78,10 @@ public class OpenNotebook : MonoBehaviour
             _isOpened = false;
             targetX = closedX;
             _source.PlayOneShot(_turnPage);
-            if (QuestManager.Instance.IsQuestCompleted(0) == false && QuestManager.Instance.IsQuestCompletedBefore(0) == false)
-            {
-                QuestManager.Instance.CompleteStep(0);
-            }
+        }
+        if (QuestManager.Instance.IsQuestCompleted(0) == false && QuestManager.Instance.IsQuestCompletedBefore(0) == false)
+        {
+            QuestManager.Instance.CompleteStep(0);
         }
     }
     private void TurnPage()

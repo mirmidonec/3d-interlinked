@@ -111,6 +111,10 @@ public class InventoryManager : MonoBehaviour
                 note.CloseNotebook();
                 yield return new WaitForSeconds(0.5f);
             }
+            else
+            {
+                 note.CloseNotebook();
+            }
         }
         SetItemActive(itemType, false);
         SetItemInactive(itemType, true);

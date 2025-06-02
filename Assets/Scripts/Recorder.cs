@@ -12,7 +12,7 @@ public class Recorder : Interactable
 
     public override void OnInteract()
     {
-        Message = "Will be availble soon";
+        Message = "Will be availble in the next updates";
 
     }
 

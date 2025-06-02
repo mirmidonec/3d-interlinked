@@ -15,6 +15,10 @@ public class Crosshair : MonoBehaviour
 
     private void Update()
     {
+        if (!crosshairPanel.gameObject.activeSelf)
+        {
+            return;
+        }
         if (inv.IsEquipped)
         {
             crosshairColor.a = 0;

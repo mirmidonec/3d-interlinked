@@ -9,7 +9,7 @@ public class Gun : Interactable
 
     public override void OnInteract()
     {
-        Message = "In a critical situation...";
+        Message = "Only for critical situations";
 
     }
 

@@ -109,7 +109,7 @@ public class NpcBehaviour : Interactable
 
     public override void OnFocus()
     {
-        Message = "Talk to Sereja";
+        Message = "Talk to suspect";
         _outline.enabled = true;
 
     }

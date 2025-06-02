@@ -21,6 +21,9 @@ public class Ending : MonoBehaviour
     public float typingSpeed = 0.05f;
     public string variableValue;
 
+
+    public GameObject crosshair;
+
     private void Start()
     {
         firstTMP.text = "";
@@ -28,7 +31,8 @@ public class Ending : MonoBehaviour
     }
     public void StartEnd()
     {
-         StartCoroutine(TypeSequence());
+        StartCoroutine(TypeSequence());
+        crosshair.SetActive(false);
     }
     private IEnumerator TypeSequence()
     {

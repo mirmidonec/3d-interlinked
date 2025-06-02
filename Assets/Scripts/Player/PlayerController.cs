@@ -36,7 +36,7 @@ public class PlayerController : MonoBehaviour
     [Header("Bobbing")]
     public float walkBobSpeed = 14f;
     public float walkBobAmount = 0.05f;
-    private float headbobEndTimer;
+    public float headbobEndTimer;
 
 
     private CharacterController characterController;
@@ -46,7 +46,7 @@ public class PlayerController : MonoBehaviour
     private float horizontalInput;
     private float verticalInput;
     private Vector2 currentInput;
-    private Vector2 currentInputRaw;
+    public Vector2 currentInputRaw;
 
     // timers
     private float footstepTimer;
@@ -77,6 +77,15 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+         if (CameraTranzition.InTransition)
+        {
+            return;
+        }
+        if (CameraTranzition.InPC)
+        {
+            HandleExit();
+            return;
+        }
         if (IsDialogue)
         {
             HandleZoom();
@@ -90,8 +99,6 @@ public class PlayerController : MonoBehaviour
             HandleZoom();
             return;
         }
-
-
         headbobEndTimer -= Time.deltaTime;
         HandleCameraController();
         HandleMouseLook();
@@ -101,6 +108,17 @@ public class PlayerController : MonoBehaviour
         HandleFootsteps();
         ApplyFinalMovements();
         HandleZoom();
+    }
+    public CameraTranzition tranz;
+    private void HandleExit()
+    {
+        if (CameraTranzition.InPC)
+        {
+            if (Input.GetKeyDown(KeyCode.Q))
+            {
+              StartCoroutine(tranz.TransitionToInitial());
+            }
+        }
     }
 
     private void HandleZoom()
@@ -134,7 +152,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    float timer;
+    public float timer;
 
     private void HandleHeadbob()
     {

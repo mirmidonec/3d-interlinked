@@ -46,7 +46,7 @@ public class Device : Interactable
 
     public override void OnInteract()
     {
-        Message = "Turn ON";
+        Message = "The device that is used for interrogation";
     }
 
     public override void OnInteractAlt()

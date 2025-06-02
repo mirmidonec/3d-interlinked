@@ -28,7 +28,12 @@ public class PlayerInteract : MonoBehaviour
 
     private void Update()
     {
-
+        if (CameraTranzition.InTransition || CameraTranzition.InPC)
+        {
+            _interactionText.text = "";
+            _guidText.text = " ";
+            return;
+        }
         if (Player.IsDialogue)
         {
             _guidText.text = " ";
@@ -76,7 +81,7 @@ public class PlayerInteract : MonoBehaviour
                 if (_typingCoroutine != null)
                     StopCoroutine(_typingCoroutine);
 
-                    _typingCoroutine = StartCoroutine(TypeText(_currentInteractable.Message));
+                _typingCoroutine = StartCoroutine(TypeText(_currentInteractable.Message));
             }
 
             if (Input.GetButtonDown("Fire1"))

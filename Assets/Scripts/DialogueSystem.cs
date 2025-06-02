@@ -212,7 +212,7 @@ public class DialogueSystem : MonoBehaviour
         {
             int index = i;
             var q = iteration.questions[i];
-            questionButtons[i].GetComponentInChildren<Text>().text = "  [" + (i + 1) + "] " + q.questionText;
+            questionButtons[i].GetComponentInChildren<Text>().text = "[" + (i + 1) + "] " + q.questionText;
             questionButtons[i].onClick.RemoveAllListeners();
             questionButtons[i].onClick.AddListener(() => OnQuestionChosen(q));
         }

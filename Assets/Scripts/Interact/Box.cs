@@ -33,7 +33,7 @@ public class Box : Interactable
         _source.PlayOneShot(_openSound);
     }
 
-    public override void OnLoseFocus()
+     public override void OnLoseFocus()
     {
         _outline.enabled = false;
     }

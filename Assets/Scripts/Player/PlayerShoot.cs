@@ -89,6 +89,10 @@ public class PlayerShoot : MonoBehaviour
 
     private void Update()
     {
+         if (CameraTranzition.InPC)
+        {
+            return;
+        }
         if (!IsEquipped)
             return;
 
