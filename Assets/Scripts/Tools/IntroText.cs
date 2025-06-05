@@ -32,12 +32,14 @@ public class IntroText : MonoBehaviour
 
     private void Start()
     {
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
         if (!IsFirstAttempt)
         {
             _transitionPanel.SetActive(false);
-             _player.enabled = true;
-                isIntro = false;
-                _ost.SetActive(true);
+            _player.enabled = true;
+            isIntro = false;
+            _ost.SetActive(true);
             return;
         }
         isIntro = true;

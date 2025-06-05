@@ -1,5 +1,8 @@
 using UnityEngine;
+
 using UnityEngine.UI;
+using UnityEngine.Localization.Settings;
+using System.Collections;
 
 public class PauseMenu : MonoBehaviour
 {
@@ -18,12 +21,58 @@ public class PauseMenu : MonoBehaviour
     private const string SensitivityKey = "MouseSensitivity";
     private const string LanguageKey = "Language";
     public enum Language { English, Russian }
-    public static Language CurrentLanguage = Language.English;
+    public static Language CurrentLanguage = Language.Russian;
+
+    public GameObject languagePanel;
+
+    public GameObject IntroPanel;
+
+    public static bool IsFirstAttemp = true;
 
     private void Awake()
     {
         IsPaused = false;
         LoadData();
+        if (!IsFirstAttemp)
+        {
+            languagePanel.SetActive(false);
+            IntroPanel.SetActive(true);
+        }
+        else
+        {
+
+            Cursor.lockState = CursorLockMode.Confined;
+            Cursor.visible = true;
+            IsFirstAttemp = false;
+        }
+    }
+
+    public bool activeLocal;
+    public void ChangeLocale(int id)
+    {
+        if (activeLocal)
+        {
+            return;
+        }
+        if (id == 0)
+        {
+            CurrentLanguage = Language.Russian;
+        }
+        else
+        {
+            CurrentLanguage = Language.English;
+        }
+        StartCoroutine(SetLocale(id));
+
+    }
+
+
+    private IEnumerator SetLocale(int id)
+    {
+        activeLocal = true;
+        yield return LocalizationSettings.InitializationOperation;
+        LocalizationSettings.SelectedLocale = LocalizationSettings.AvailableLocales.Locales[id];
+        activeLocal = false;
     }
 
     private void SaveData()
@@ -42,14 +91,16 @@ public class PauseMenu : MonoBehaviour
         {
             CurrentLanguage = Language.English;
         }
-        PlayerPrefs.SetInt(LanguageKey, (int)CurrentLanguage);
-        PlayerPrefs.Save();
+
         ApplyLanguage();
     }
 
     private void ApplyLanguage()
     {
-        
+        int langID = (int)CurrentLanguage;
+        PlayerPrefs.SetInt(LanguageKey, langID);
+        PlayerPrefs.Save();
+        StartCoroutine(SetLocale(langID));
     }
 
 
@@ -57,6 +108,9 @@ public class PauseMenu : MonoBehaviour
     {
         float volume = PlayerPrefs.GetFloat(VolumeKey, 0.5f);
         float sensitivity = PlayerPrefs.GetFloat(SensitivityKey, 0.5f);
+        int langID = PlayerPrefs.GetInt(LanguageKey, 0);
+        CurrentLanguage = (Language)langID;
+        StartCoroutine(SetLocale(langID));
 
         _volumeSlider.value = volume;
         _mouseSensitivitySlider.value = sensitivity;

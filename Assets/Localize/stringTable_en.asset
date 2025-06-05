@@ -1,0 +1,135 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: stringTable_en
+  m_EditorClassIdentifier: 
+  m_LocaleId:
+    m_Code: en
+  m_SharedData: {fileID: 11400000, guid: cf34e1b969f028343bfd5cc72e7e336a, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 171599663104
+    m_Localized: ROOM 9-B
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1948902428672
+    m_Localized: press lmb to continue
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2056914145280
+    m_Localized: PROTOCOL OF THE INTERROGATION
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2243627782144
+    m_Localized: You do not mention the test.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2325089554432
+    m_Localized: You do not explain the questions.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2379053469696
+    m_Localized: "They sit. They answer. They don\u2019t know what it's for.\r\n"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2520212770816
+    m_Localized: "They think it\u2019s routine."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2566077485056
+    m_Localized: "It\u2019s not."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2646692007936
+    m_Localized: Inside every answer - a signal.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2795438804992
+    m_Localized: Inside every blink - a lie, or the lack of one.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3298734313472
+    m_Localized: The machine knows. I just confirm.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3376421212160
+    m_Localized: They smile. They sweat.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3487524130816
+    m_Localized: Some cry.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3551021699072
+    m_Localized: "Some don\u2019t."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3611461619712
+    m_Localized: "One of them isn\u2019t what they claim to be."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3678662758400
+    m_Localized: "And tonight, they\u2019ll find out too late."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3773009432576
+    m_Localized: I ask the questions.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3820505731072
+    m_Localized: The machine watches the eyes.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 3901904588800
+    m_Localized: If she sees a glitch...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4157081849856
+    m_Localized: "they\u2019re not human."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 6797811453952
+    m_Localized: "LMB - Inspect  \nRMB - Use\n"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7022449987584
+    m_Localized: mouse speed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7201265750016
+    m_Localized: master volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7277073600512
+    m_Localized: ESC to close
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9254050402304
+    m_Localized: Russia
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9339849084928
+    m_Localized: English
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9404038713344
+    m_Localized: Select a language
+    m_Metadata:
+      m_Items: []
+  - m_Id: 17257025703936
+    m_Localized: english
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []
