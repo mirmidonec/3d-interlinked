@@ -5,7 +5,7 @@ using UnityEngine;
 [RequireComponent(typeof(AudioSource))]
 public class Door : Interactable
 {
- [Header("Open Settings")]
+    [Header("Open Settings")]
     [SerializeField] private float _openAngle = 90f;
     [SerializeField] private float _openSpeed = 90f;
     [SerializeField] private Transform _hingeTransform;
@@ -20,7 +20,14 @@ public class Door : Interactable
 
     public override void OnFocus()
     {
-        Message = "Door";
+        if (PauseMenu.CurrentLanguage == PauseMenu.Language.English)
+        {
+            Message = "Door";
+        }
+        else
+        {
+            Message = "Дверь";
+        }
         _outline.enabled = true;
     }
 

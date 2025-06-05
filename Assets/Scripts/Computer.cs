@@ -8,12 +8,26 @@ public class Computer : Interactable
     public PlayerController player;
     public override void OnFocus()
     {
-        Message = "My personal computer";
+        if (PauseMenu.CurrentLanguage == PauseMenu.Language.English)
+        {
+            Message = "My personal computer";
+        }
+        else
+        {
+            Message = "Мой личный компьютер";
+        }
         _outline.enabled = true;
     }
     public override void OnInteract()
     {
-        Message = "I use it to compile reports.";
+        if (PauseMenu.CurrentLanguage == PauseMenu.Language.English)
+        {
+            Message = "I use it to compile reports";
+        }
+        else
+        {
+            Message = "Я использую его для составления отчетов";
+        }
     }
     public override void OnLoseFocus()
     {
@@ -28,7 +42,14 @@ public class Computer : Interactable
         }
         if (!player.isSitting)
         {
-            Message = "First, I need to sit down.";
+            if (PauseMenu.CurrentLanguage == PauseMenu.Language.English)
+            {
+                Message = "First, I need to sit down";
+            }
+            else
+            {
+                Message = "Сначала мне нужно присесть";
+            }
             return;
         }
         if (player.IsDialogue || CameraTranzition.InPC)

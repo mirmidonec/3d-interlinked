@@ -59,16 +59,22 @@ public class QuestManager : MonoBehaviour
 
     public void UpdateUI()
     {
-        _questName.text = _currentQuest.QuestName;
+        if (_currentQuest == null) return;
+
+        bool isEnglish = PauseMenu.CurrentLanguage == PauseMenu.Language.English;
+
+        _questName.text = isEnglish ? _currentQuest.QuestName_EN : _currentQuest.QuestName_RU;
+
+        string[] steps = isEnglish ? _currentQuest.QuestSteps_EN : _currentQuest.QuestSteps_RU;
 
         for (int i = 0; i < _questSteps.Length; i++)
         {
-            if (i < _currentQuest.QuestSteps.Length)
+            if (i < steps.Length)
             {
                 _questSteps[i].gameObject.SetActive(true);
                 _questSteps[i].text = _currentQuest.CompletedSteps[i]
-                    ? $"<s>{_currentQuest.QuestSteps[i]}</s>"
-                    : _currentQuest.QuestSteps[i];
+                    ? $"<s>{steps[i]}</s>"
+                    : steps[i];
             }
             else
             {
@@ -107,7 +113,11 @@ public class QuestManager : MonoBehaviour
 [System.Serializable]
 public class Quest
 {
-    public string QuestName;
-    public string[] QuestSteps;
+    public string QuestName_EN;
+    public string QuestName_RU;
+
+    public string[] QuestSteps_EN;
+    public string[] QuestSteps_RU;
+
     public bool[] CompletedSteps;
 }

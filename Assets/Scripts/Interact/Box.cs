@@ -23,7 +23,14 @@ public class Box : Interactable
 
     public override void OnFocus()
     {
-        Message = "Shelf";
+        if (PauseMenu.CurrentLanguage == PauseMenu.Language.English)
+        {
+            Message = "Shelf";
+        }
+        else
+        {
+            Message = "Полка";
+        }
         _outline.enabled = true;
     }
 

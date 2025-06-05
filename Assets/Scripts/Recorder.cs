@@ -6,13 +6,27 @@ public class Recorder : Interactable
 {
     public override void OnFocus()
     {
-        Message = "Service recording device";
+        if (PauseMenu.CurrentLanguage == PauseMenu.Language.English)
+        {
+            Message = "Service recording device";
+        }
+        else
+        {
+            Message = "Служебное записывающее устройство";
+        }
         _outline.enabled = true;
     }
 
     public override void OnInteract()
     {
-        Message = "Will be availble in the next updates";
+        if (PauseMenu.CurrentLanguage == PauseMenu.Language.English)
+        {
+            Message = "Will be available in the next updates";
+        }
+        else
+        {
+            Message = "Будет доступно в следующих обновлениях";
+        }
 
     }
 

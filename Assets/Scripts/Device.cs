@@ -46,20 +46,41 @@ public class Device : Interactable
 
     public override void OnFocus()
     {
-        Message = "Device";
+        if (PauseMenu.CurrentLanguage == PauseMenu.Language.English)
+        {
+            Message = "Device";
+        }
+        else
+        {
+            Message = "Устройство";
+        }
         _outline.enabled = true;
     }
 
     public override void OnInteract()
     {
-        Message = "The device that is used for interrogation";
+        if (PauseMenu.CurrentLanguage == PauseMenu.Language.English)
+        {
+            Message = "The device that is used for interrogation";
+        }
+        else
+        {
+            Message = "Устройство, используемое для допроса";
+        }
     }
 
     public override void OnInteractAlt()
     {
         if (IsOn)
         {
-            Message = "Already ON";
+            if (PauseMenu.CurrentLanguage == PauseMenu.Language.English)
+            {
+                Message = "Already ON";
+            }
+            else
+            {
+                Message = "Уже ВКЛ";
+            }
             return;
         }
 
@@ -69,14 +90,28 @@ public class Device : Interactable
         }
         else
         {
-            Message = "Can't do this now";
+            if (PauseMenu.CurrentLanguage == PauseMenu.Language.English)
+            {
+                Message = "Can't do this now";
+            }
+            else
+            {
+                Message = "Сейчас это сделать нельзя";
+            }
         }
     }
     bool isActivating = false;
     private IEnumerator StartDeviceSequence()
     {
         isActivating = true;
-        Message = "Activating system...";
+        if (PauseMenu.CurrentLanguage == PauseMenu.Language.English)
+        {
+            Message = "Activating system...";
+        }
+        else
+        {
+            Message = "Активация системы...";
+        }
         yield return StartCoroutine(ButtonAnimation());
 
         Source.PlayOneShot(clip1);
@@ -92,7 +127,7 @@ public class Device : Interactable
         Source.PlayOneShot(clip2);
         hacker1.SetActive(true);
         hacker2.SetActive(true);
-       // Igor.SetActive(true);
+        // Igor.SetActive(true);
         IsOn = true;
         QuestManager.Instance.CompleteStep(1);
         isActivating = false;

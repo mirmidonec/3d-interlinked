@@ -105,7 +105,14 @@ public class Connection : MonoBehaviour
 
         if (!Validation())
         {
-            errorText.text = "Validation error! Check the entered data.";
+            if (PauseMenu.CurrentLanguage == PauseMenu.Language.English)
+            {
+                errorText.text = "Validation error! Check the entered data.";
+            }
+            else
+            {
+                errorText.text = "Ошибка проверки! Проверьте введенные данные.";
+            }
             Debug.Log("Validation failed: " + errorText.text);
             source.PlayOneShot(clip);
             return;
@@ -138,7 +145,14 @@ public class Connection : MonoBehaviour
                         if (storedPassword == password)
                         {
                             currentUser = login;
-                            errorText.text = $"Login successful for user: {login}";
+                            if (PauseMenu.CurrentLanguage == PauseMenu.Language.English)
+                            {
+                                errorText.text = $"Login successful for user: {login}";
+                            }
+                            else
+                            {
+                                errorText.text = $"Успешный вход для пользователя: {login}";
+                            }
                             Debug.Log($"Login successful for user: {login}");
 
                             // Загрузка статистики
@@ -146,7 +160,14 @@ public class Connection : MonoBehaviour
                         }
                         else
                         {
-                            errorText.text = $"Login failed for user: {login}. Wrong password.";
+                            if (PauseMenu.CurrentLanguage == PauseMenu.Language.English)
+                            {
+                                errorText.text = $"Login failed for user: {login}. Wrong password.";
+                            }
+                            else
+                            {
+                                errorText.text = $"Не удалось войти: {login}. Неверный пароль.";
+                            }
                             Debug.Log($"Login failed for user: {login}. Wrong password.");
                             source.PlayOneShot(clip);
                             return;
@@ -155,14 +176,28 @@ public class Connection : MonoBehaviour
                     else
                     {
                         RegisterNewUser(command, login, password);
-                        errorText.text = $"Registration successful for user: {login}";
+                        if (PauseMenu.CurrentLanguage == PauseMenu.Language.English)
+                        {
+                            errorText.text = $"Registration successful for user: {login}";
+                        }
+                        else
+                        {
+                            errorText.text = $"Регистрация прошла успешно: {login}";
+                        }
                         Debug.Log($"Registration successful for user: {login}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                errorText.text = "Database error: " + ex.Message;
+                if (PauseMenu.CurrentLanguage == PauseMenu.Language.English)
+                {
+                    errorText.text = "Database error: " + ex.Message;
+                }
+                else
+                {
+                    errorText.text = "Ошибка базы данных: " + ex.Message;
+                }
                 Debug.LogError("Database error: " + ex.Message);
             }
             finally
@@ -173,7 +208,14 @@ public class Connection : MonoBehaviour
         panel.SetActive(false);
         TextNotify.SetActive(true);
         canvas.GetComponent<GraphicRaycaster>().enabled = false;
-        TextNotify.GetComponent<TMP_Text>().text = "WELCOME BACK!";
+        if (PauseMenu.CurrentLanguage == PauseMenu.Language.English)
+        {
+            TextNotify.GetComponent<TMP_Text>().text = "WELCOME BACK!";
+        }
+        else
+        {
+            TextNotify.GetComponent<TMP_Text>().text = "С ВОЗВРАЩЕНИЕМ!";
+        }
 
     }
 

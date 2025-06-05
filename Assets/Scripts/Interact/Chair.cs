@@ -6,7 +6,14 @@ public class Chair : Interactable
     {
         if (Player == null)
         {
-            Message = "Chair";
+            if (PauseMenu.CurrentLanguage == PauseMenu.Language.English)
+            {
+                Message = "Chair";
+            }
+            else
+            {
+                Message = "Стул";
+            }
             _outline.enabled = true;
             return;
         }
@@ -17,7 +24,14 @@ public class Chair : Interactable
             return;
         }
 
-        Message = "Chair";
+        if (PauseMenu.CurrentLanguage == PauseMenu.Language.English)
+        {
+            Message = "Chair";
+        }
+        else
+        {
+            Message = "Стул";
+        }
         _outline.enabled = true;
     }
 
@@ -25,7 +39,14 @@ public class Chair : Interactable
     {
         if (Player == null)
         {
-            Message = "Sit down will trigger the start of interview";
+            if (PauseMenu.CurrentLanguage == PauseMenu.Language.English)
+            {
+                Message = "After you sit down, the interrogation will begin";
+            }
+            else
+            {
+                Message = "После того, как вы сядете, начнется допрос";
+            }
             return;
         }
         if (Player.isSitting)
@@ -35,7 +56,14 @@ public class Chair : Interactable
             return;
         }
 
-        Message = "Sit down will trigger the start of interview";
+        if (PauseMenu.CurrentLanguage == PauseMenu.Language.English)
+        {
+            Message = "After you sit down, the interrogation will begin";
+        }
+        else
+        {
+            Message = "После того, как вы сядете, начнется допрос";
+        }
         _outline.enabled = true;
     }
 
@@ -43,7 +71,14 @@ public class Chair : Interactable
     {
         if (Player == null)
         {
-            Message = "It's not your chair";
+            if (PauseMenu.CurrentLanguage == PauseMenu.Language.English)
+            {
+                Message = "It's not your chair";
+            }
+            else
+            {
+                Message = "Это не ваш стул";
+            }
             _outline.enabled = true;
             return;
         }
@@ -62,7 +97,14 @@ public class Chair : Interactable
             else
             {
                 QuestManager.Instance.Init(0);
-                Message = "Inspect room before sit";
+                if (PauseMenu.CurrentLanguage == PauseMenu.Language.English)
+                {
+                    Message = "Inspect room before sit";
+                }
+                else
+                {
+                    Message = "Изучите комнату перед тем как сесть";
+                }
                 _outline.enabled = true;
             }
         }

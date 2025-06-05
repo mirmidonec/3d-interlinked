@@ -3,13 +3,27 @@ public class Thermos : Interactable
 {
     public override void OnFocus()
     {
-        Message = "Thermos";
+        if (PauseMenu.CurrentLanguage == PauseMenu.Language.English)
+        {
+            Message = "Thermos";
+        }
+        else
+        {
+            Message = "Термос";
+        }
         _outline.enabled = true;
     }
 
     public override void OnInteract()
     {
-        Message = "Warm coffee, as usual";
+        if (PauseMenu.CurrentLanguage == PauseMenu.Language.English)
+        {
+            Message = "Warm coffee, as usual";
+        }
+        else
+        {
+            Message = "Теплый кофе, как обычно";
+        }
     }
 
     public override void OnLoseFocus()

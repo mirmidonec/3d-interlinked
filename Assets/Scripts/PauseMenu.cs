@@ -16,6 +16,9 @@ public class PauseMenu : MonoBehaviour
 
     private const string VolumeKey = "Volume";
     private const string SensitivityKey = "MouseSensitivity";
+    private const string LanguageKey = "Language";
+    public enum Language { English, Russian }
+    public static Language CurrentLanguage = Language.English;
 
     private void Awake()
     {
@@ -29,6 +32,26 @@ public class PauseMenu : MonoBehaviour
         PlayerPrefs.SetFloat(SensitivityKey, _mouseSensitivitySlider.value);
         PlayerPrefs.Save();
     }
+    public void ToggleLanguage()
+    {
+        if (CurrentLanguage == Language.English)
+        {
+            CurrentLanguage = Language.Russian;
+        }
+        else
+        {
+            CurrentLanguage = Language.English;
+        }
+        PlayerPrefs.SetInt(LanguageKey, (int)CurrentLanguage);
+        PlayerPrefs.Save();
+        ApplyLanguage();
+    }
+
+    private void ApplyLanguage()
+    {
+        
+    }
+
 
     private void LoadData()
     {
@@ -47,7 +70,7 @@ public class PauseMenu : MonoBehaviour
     {
         if (Ending.IsEnding || IntroText.isIntro || player.IsDialogue)
         {
-             _pauseMenu.gameObject.SetActive(false);
+            _pauseMenu.gameObject.SetActive(false);
             return;
         }
         if (CameraTranzition.InPC)
