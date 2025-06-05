@@ -34,6 +34,9 @@ public class Ending : MonoBehaviour
     public GameObject button1;
     public GameObject button2;
 
+
+    public GameObject quest;
+
     private void Start()
     {
         IsEnding = false;
@@ -43,11 +46,29 @@ public class Ending : MonoBehaviour
     [ContextMenu("a")]
     public void StartEnd()
     {
+        if (PauseMenu.CurrentLanguage == PauseMenu.Language.Russian)
+        {
+            firstText = "Конец";
+            secondText = "Подозреваемый оказался ";
+        }
+        else
+        {
+            firstText = "The end";
+            secondText = "The suspect was ";
+        }
         NpcChoiser.Instance.currentNpc.Condition = variableValue;
+        if (PauseMenu.CurrentLanguage == PauseMenu.Language.Russian)
+        {
+            if (variableValue.ToLower() == "a replicant")
+                variableValue = "репликантом";
+            else if (variableValue.ToLower() == "a human")
+                variableValue = "человеком";
+        }
         StartCoroutine(TypeSequence());
+        quest.SetActive(false);
         crosshair.SetActive(false);
         con.SaveProgress();
-        
+
     }
 
     public void QuitGame()
@@ -64,9 +85,9 @@ public class Ending : MonoBehaviour
         yield return StartCoroutine(TypeTextWithRichTags(firstTMP, firstText));
 
         string colorHex;
-        if (variableValue.ToLower() == "a replicant")
+        if (variableValue.ToLower() == "a replicant" || variableValue.ToLower() == "репликантом")
             colorHex = "#FF0000";
-        else if (variableValue.ToLower() == "a human")
+        else if (variableValue.ToLower() == "a human" || variableValue.ToLower() == "человеком")
             colorHex = "#00FF00";
         else
             colorHex = "#FFFFFF";
@@ -80,6 +101,7 @@ public class Ending : MonoBehaviour
         button1.SetActive(true);
         yield return new WaitForSecondsRealtime(0.5f);
         button2.SetActive(true);
+        IsEnding = false;
     }
 
     private IEnumerator TypeTextWithRichTags(TMP_Text tmpField, string text)

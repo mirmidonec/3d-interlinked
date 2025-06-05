@@ -284,14 +284,22 @@ public class DialogueSystem : MonoBehaviour
         Ost.volume = targetVolume;
 
 
-        yield return StartCoroutine(TypeLine("The interrogation is over..."));
+        string endLine = PauseMenu.CurrentLanguage == PauseMenu.Language.English
+     ? "The interrogation is over..."
+     : "Допрос окончен...";
+
+        string verdictLine = PauseMenu.CurrentLanguage == PauseMenu.Language.English
+            ? "What is your final verdict?"
+            : "Каков твой окончательный вердикт?";
+
+        yield return StartCoroutine(TypeLine(endLine));
         yield return new WaitForSeconds(0.5f);
 
         ShowFinalSummary();
 
         yield return new WaitForSeconds(0.5f);
 
-        yield return StartCoroutine(TypeLine("What is your final verdict?"));
+        yield return StartCoroutine(TypeLine(verdictLine));
 
         FinalChoicePanel.SetActive(true);
         AnswerPanel.SetActive(false);

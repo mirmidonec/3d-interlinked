@@ -111,7 +111,9 @@ public class NpcBehaviour : Interactable
 
     public override void OnFocus()
     {
-        Message = "Talk to suspect";
+        Message = PauseMenu.CurrentLanguage == PauseMenu.Language.English
+      ? "Talk to suspect"
+      : "Поговорить с подозреваемым";
         _outline.enabled = true;
 
     }
@@ -133,13 +135,18 @@ public class NpcBehaviour : Interactable
         }
         else if (dialogue.IsDone)
         {
-            Message = "You can go home now";
+            Message = PauseMenu.CurrentLanguage == PauseMenu.Language.English
+                ? "You can go home now"
+                : "Можешь идти домой";
+
             QuestManager.Instance.CompleteStep(0);
             StandUpAndLeave();
         }
         else
         {
-            Message = "Can't do this now";
+            Message = PauseMenu.CurrentLanguage == PauseMenu.Language.English
+                ? "Can't do this now"
+                : "Сейчас это сделать нельзя";
         }
 
     }
@@ -216,7 +223,7 @@ public class NpcBehaviour : Interactable
         _box.size = new Vector3(2f, 7.3f, 2f);
         _box.center = new Vector3(-0.1f, 3f, 0.02f);
 
-    
+
         if (footSource != null && sitClip != null)
         {
             footSource.PlayOneShot(sitClip);

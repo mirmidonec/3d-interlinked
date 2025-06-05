@@ -35,12 +35,12 @@ public class PlayerInteract : MonoBehaviour
         if (CameraTranzition.InTransition || CameraTranzition.InPC)
         {
             _interactionText.text = "";
-            _guidText.text = " ";
+             _guidText.gameObject.SetActive(false);
             return;
         }
         if (Player.IsDialogue)
         {
-            _guidText.text = " ";
+             _guidText.gameObject.SetActive(false);
         }
         if (Physics.Raycast(_mainCamera.transform.position, _mainCamera.transform.forward, out RaycastHit hit, PlayerEntity.Instance.InteractDistance))
         {

@@ -20,7 +20,7 @@ public class PauseMenu : MonoBehaviour
     private const string VolumeKey = "Volume";
     private const string SensitivityKey = "MouseSensitivity";
     private const string LanguageKey = "Language";
-    public enum Language { English, Russian }
+    public enum Language { Russian, English }
     public static Language CurrentLanguage = Language.Russian;
 
     public GameObject languagePanel;
@@ -28,6 +28,10 @@ public class PauseMenu : MonoBehaviour
     public GameObject IntroPanel;
 
     public static bool IsFirstAttemp = true;
+
+
+
+    public QuestManager quest;
 
     private void Awake()
     {
@@ -101,6 +105,7 @@ public class PauseMenu : MonoBehaviour
         PlayerPrefs.SetInt(LanguageKey, langID);
         PlayerPrefs.Save();
         StartCoroutine(SetLocale(langID));
+        quest.UpdateUI();
     }
 
 
