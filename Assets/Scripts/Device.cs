@@ -1,11 +1,9 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class Device : Interactable
 {
-    public GameObject ButtonOff;
-    public GameObject ButtonOn;
-
     public Animator EyeDetectAnimator;
 
     public AudioSource Source;
@@ -17,7 +15,7 @@ public class Device : Interactable
     private Pillow pillowScript;
 
     public PlayerController player;
-    public NpcBehaviour npc;
+
 
     public bool IsOn;
 
@@ -31,15 +29,23 @@ public class Device : Interactable
 
     public GameObject Igor;
 
+    // Новая логика кнопки
+    public GameObject powerbutton;
+    public Transform powerbutton_in;
+    public Transform powerbutton_out;
+
+
+    public GameObject hacker1;
+    public GameObject hacker2;
 
     protected override void Awake()
     {
         Instance = this;
         base.Awake();
     }
+
     public override void OnFocus()
     {
-
         Message = "Device";
         _outline.enabled = true;
     }
@@ -53,39 +59,50 @@ public class Device : Interactable
     {
         if (IsOn)
         {
-            Message = "Alredy ON";
+            Message = "Already ON";
             return;
         }
 
-        if (player.isSitting && npc.hasSat && !ButtonOff.activeSelf)
+        if (player.isSitting && NpcChoiser.Instance.currentNpc.hasSat && !isActivating)
         {
-            StartCoroutine(EyeRoutine());
-        }
-        else if (ButtonOff.activeSelf)
-        {
-            Message = "Loading system...";
+            StartCoroutine(StartDeviceSequence());
         }
         else
         {
             Message = "Can't do this now";
         }
     }
-    private IEnumerator EyeRoutine()
+    bool isActivating = false;
+    private IEnumerator StartDeviceSequence()
     {
-        ButtonOn.transform.position = new Vector3(0, 0, +1);
-        ButtonOff.SetActive(true);
+        isActivating = true;
+        Message = "Activating system...";
+        yield return StartCoroutine(ButtonAnimation());
+
         Source.PlayOneShot(clip1);
         yield return new WaitForSeconds(0.1f);
         HumsSource.volume = 0.5f;
         yield return new WaitForSeconds(0.1f);
+
         EyeDetectAnimator.SetTrigger("IsOn");
         yield return new WaitForSeconds(10f);
+
         Eye.SetActive(true);
         EyeDetectPump.GetComponent<MeshRenderer>().material = redEye;
         Source.PlayOneShot(clip2);
-        Igor.SetActive(true);
+        hacker1.SetActive(true);
+        hacker2.SetActive(true);
+       // Igor.SetActive(true);
         IsOn = true;
         QuestManager.Instance.CompleteStep(1);
+        isActivating = false;
+    }
+
+    private IEnumerator ButtonAnimation()
+    {
+        powerbutton.transform.position = powerbutton_in.position;
+        yield return new WaitForSeconds(0.15f);
+        powerbutton.transform.position = powerbutton_out.position;
     }
 
     public override void OnLoseFocus()

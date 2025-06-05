@@ -33,6 +33,8 @@ public class NpcBehaviour : Interactable
     public GameObject Dialogue;
 
     private BoxCollider _box;
+    public string Condition;
+    public bool IsReplicant;
 
     protected override void Awake()
     {
@@ -214,7 +216,7 @@ public class NpcBehaviour : Interactable
         _box.size = new Vector3(2f, 7.3f, 2f);
         _box.center = new Vector3(-0.1f, 3f, 0.02f);
 
-        // Add sitting sound
+    
         if (footSource != null && sitClip != null)
         {
             footSource.PlayOneShot(sitClip);

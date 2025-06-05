@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Ending : MonoBehaviour
 {
@@ -22,45 +23,73 @@ public class Ending : MonoBehaviour
     public string variableValue;
 
 
+    public static bool IsEnding = false;
+
+
     public GameObject crosshair;
+
+    public Connection con;
+
+
+    public GameObject button1;
+    public GameObject button2;
 
     private void Start()
     {
+        IsEnding = false;
         firstTMP.text = "";
         secondTMP.text = "";
     }
+    [ContextMenu("a")]
     public void StartEnd()
     {
+        NpcChoiser.Instance.currentNpc.Condition = variableValue;
         StartCoroutine(TypeSequence());
         crosshair.SetActive(false);
+        con.SaveProgress();
+        
+    }
+
+    public void QuitGame()
+    {
+        Application.Quit();
+    }
+    public void Rerty()
+    {
+        SceneManager.LoadScene(0);
     }
     private IEnumerator TypeSequence()
     {
-
+        IsEnding = true;
         yield return StartCoroutine(TypeTextWithRichTags(firstTMP, firstText));
 
         string colorHex;
         if (variableValue.ToLower() == "a replicant")
             colorHex = "#FF0000";
         else if (variableValue.ToLower() == "a human")
-            colorHex = "#00FF00"; 
+            colorHex = "#00FF00";
         else
             colorHex = "#FFFFFF";
 
         string coloredVariable = $"<color={colorHex}>{variableValue}</color>";
         string fullSecondText = secondText + coloredVariable;
         yield return new WaitForSecondsRealtime(0.5f);
+        Cursor.lockState = CursorLockMode.Confined;
+        Cursor.visible = true;
         yield return StartCoroutine(TypeTextWithRichTags(secondTMP, fullSecondText));
+        button1.SetActive(true);
+        yield return new WaitForSecondsRealtime(0.5f);
+        button2.SetActive(true);
     }
 
-       private IEnumerator TypeTextWithRichTags(TMP_Text tmpField, string text)
+    private IEnumerator TypeTextWithRichTags(TMP_Text tmpField, string text)
     {
         tmpField.text = "";
 
         int i = 0;
         while (i < text.Length)
         {
-            if (text[i] == '<') 
+            if (text[i] == '<')
             {
                 int closeIndex = text.IndexOf('>', i);
                 if (closeIndex == -1)

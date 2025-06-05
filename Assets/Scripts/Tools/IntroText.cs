@@ -25,9 +25,22 @@ public class IntroText : MonoBehaviour
     private bool _isVisible = false;
     private bool _hasPlayedFinalSound = false;
 
+
+    public static bool isIntro = false;
+
+    public static bool IsFirstAttempt = true;
+
     private void Start()
     {
-        Cursor.lockState = CursorLockMode.Locked;
+        if (!IsFirstAttempt)
+        {
+            _transitionPanel.SetActive(false);
+             _player.enabled = true;
+                isIntro = false;
+                _ost.SetActive(true);
+            return;
+        }
+        isIntro = true;
         _isVisible = false;
         _currentIndex = 0;
         _hasPlayedFinalSound = false;
@@ -111,6 +124,8 @@ public class IntroText : MonoBehaviour
 
         yield return new WaitForSeconds(2f);
         _player.enabled = true;
+        isIntro = false;
+        IsFirstAttempt = false;
         yield return new WaitForSeconds(1f);
 
         if (_transitionPanel != null)
@@ -126,5 +141,6 @@ public class IntroText : MonoBehaviour
         {
             _ost.SetActive(true);
         }
+
     }
 }

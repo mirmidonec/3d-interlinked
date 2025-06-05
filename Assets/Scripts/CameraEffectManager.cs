@@ -32,23 +32,30 @@ public class CameraEffectManager : MonoBehaviour
     }
     public IEnumerator RedScreenRoutine()
     {
-        if (volume.profile.TryGetSettings(out colorGrading))
+        if (volume != null)
         {
-            Debug.Log("color found!");
+            if (volume.profile.TryGetSettings(out colorGrading))
+            {
+                Debug.Log("color found!");
+            }
         }
         float duration = 5f;
         float timer = 0f;
 
         Color startColor = new Color(1f, 1f, 1f);
         Color targetColor = new Color(0.7f, 0f, 0f);
-
-        colorGrading.colorFilter.value = startColor;
-        while (timer < duration)
+        if (colorGrading != null)
         {
-            timer += Time.deltaTime;
-            colorGrading.colorFilter.value = Color.Lerp(startColor, targetColor, timer / duration);
-            yield return null;
+            colorGrading.colorFilter.value = startColor;
+            yield break;
         }
+        while (timer < duration)
+            {
+                timer += Time.deltaTime;
+                
+                colorGrading.colorFilter.value = Color.Lerp(startColor, targetColor, timer / duration);
+                yield return null;
+            }
 
         colorGrading.colorFilter.value = targetColor;
     }

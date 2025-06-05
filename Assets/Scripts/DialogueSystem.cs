@@ -142,6 +142,14 @@ public class DialogueSystem : MonoBehaviour
 
     void Start()
     {
+        if (NpcChoiser.Instance.currentNpc.gameObject.name == "sereja")
+        {
+            GenerateFullDialogueRep();
+        }
+        else if (NpcChoiser.Instance.currentNpc.gameObject.name == "svetloliki")
+        {
+            GenerateFullDialogueHum();
+        }
         AnswerPanel.SetActive(false);
         ShowIteration();
         UpdateStatsUI();
@@ -149,6 +157,9 @@ public class DialogueSystem : MonoBehaviour
         pupilDilation = UnityEngine.Random.Range(pupilMin, pupilMax);
         pulseTarget = pulse;
         pupilTarget = pupilDilation;
+
+
+        
     }
     void UpdateNaturalFluctuations()
     {
@@ -236,9 +247,12 @@ public class DialogueSystem : MonoBehaviour
         float timer = 0f;
         float startVolume = 0f;
         float targetVolume = 0.4f;
-        if (volume.profile.TryGetSettings(out vignette))
+        if (volume != null)
         {
-            Debug.Log("Vignette found!");
+            if (volume.profile.TryGetSettings(out vignette))
+            {
+                Debug.Log("Vignette found!");
+            }
         }
 
         float targetVolumeVin = 0.7f;
@@ -247,7 +261,10 @@ public class DialogueSystem : MonoBehaviour
         {
             timer += Time.deltaTime;
             Ost.volume = Mathf.Lerp(startVolume, targetVolume, timer / duration);
-            vignette.intensity.value = Mathf.Lerp(startVolume, targetVolumeVin, timer / duration);
+            if (vignette != null)
+            {
+                vignette.intensity.value = Mathf.Lerp(startVolume, targetVolumeVin, timer / duration);
+            }
             yield return null;
         }
         Ost.volume = targetVolume;
@@ -271,11 +288,15 @@ public class DialogueSystem : MonoBehaviour
         replicantButton.onClick.AddListener(() => OnFinalChoice(true));
         humanButton.onClick.AddListener(() => OnFinalChoice(false));
     }
-    public NpcBehaviour npc;
     void OnFinalChoice(bool isReplicant)
     {
         FinalChoicePanel.SetActive(false);
         AnswerPanel.SetActive(true);
+        DBdata.CurrentSessionResults.Add(new SessionResult
+        {
+            IsReplicant = isReplicant,
+            IsCorrect = NpcChoiser.Instance.currentNpc.IsReplicant == isReplicant
+        });
 
         if (isReplicant)
         {
@@ -294,7 +315,7 @@ public class DialogueSystem : MonoBehaviour
             vignette.intensity.value = 0f;
         }
         IsDone = true;
-        npc.CloseDialogue();
+        NpcChoiser.Instance.currentNpc.CloseDialogue();
     }
     private float currentDelay = 0f;
     void OnQuestionChosen(QuestionData question)
@@ -317,13 +338,13 @@ public class DialogueSystem : MonoBehaviour
     {
         dialogueText.text = "";
 
-        ApplyEffect(question.effect);
         UpdateStatsUI();
 
         AnswerPanel.SetActive(true);
         QuestionPanel.SetActive(false);
 
         yield return TypeLine($"Detective: {question.questionText}");
+        DBdata.Questions.Add(question); // добавили в БД!
 
         float delay = question.answer.effect.delayChange;
         float elapsed = 0f;
@@ -343,11 +364,12 @@ public class DialogueSystem : MonoBehaviour
         currentDelay = delay;
         ApplyEffect(question.answer.effect);
         UpdateStatsUI();
+
+        yield return TypeLine($"Suspect: {question.answer.answerText}");
+
         pulseHistory.Add(pulse);
         pupilHistory.Add(pupilDilation);
         delayHistory.Add(currentDelay);
-
-        yield return TypeLine($"Suspect: {question.answer.answerText}");
 
         currentIteration++;
 
@@ -417,153 +439,130 @@ public class DialogueSystem : MonoBehaviour
             UpdateStatsUI();
     }
 
-
-
-    [ContextMenu("Generate Full 30 Iterations Dialogue")]
-    void GenerateFullDialogue()
+    [ContextMenu("Generate Full 30 Iterations Dialogue HUMAN")]
+    public void GenerateFullDialogueHum()
     {
         iterations = new List<DialogueIteration>();
 
-        // Расширенный набор вопросов с ответами, вдохновленных Blade Runner Voight-Kampff и похожими темами
-        List<(string question, string answer, bool isMoral)> questionAnswerPairs = new List<(string, string, bool)>
-    {
-        // Итерация 1
-        ("You're watching TV. Suddenly you notice a wasp crawling on your arm. What do you do?",
-            "I watch it for a moment... then gently brush it off.", true),
+        List<(string question, string answer, float moralLoad, float personalExposure, float deceptionPressure)> realHumanQA =
+         new List<(string, string, float, float, float)>
+     {
+    ("You just found out your best friend lied to you about something serious. What do you do?",
+        "I’d confront them, probably too quickly. I can’t stand feeling betrayed like that.", 0.8f, 0.9f, 0.7f),
 
-        ("You're in a desert. You see a tortoise flipped on its back. It can't get up. What do you do?",
-            "I help it, of course. It needs me.", true),
+    ("You’re asked to steal medicine for a loved one. Would you do it?",
+        "Absolutely. I don’t think twice when it comes to family, even if it means breaking rules.", 0.9f, 0.8f, 0.6f),
 
-        ("Describe in single words, only the good things that come to your mind about your mother.",
-            "Warmth. Love. Kindness. Security.", true),
+    ("You accidentally hurt someone in a fight. How do you feel?",
+        "Terrible. My heart pounds just thinking about it. I didn’t mean to, but it still haunts me.", 0.7f, 0.9f, 0.5f),
 
-        // Итерация 2
-        ("You see a child showing you his butterfly collection, including some killed with a pin. What do you do?",
-            "I ask why he killed them... and if he feels anything.", true),
+    ("Your partner accuses you of cheating, but it’s not true. What’s your reaction?",
+        "Frustrated and hurt. I want to scream, but I try to keep calm and prove I’m honest.", 0.8f, 0.8f, 0.7f),
 
-        ("You see a banquet table filled with roast. A fly is walking across the food. What is your reaction?",
-            "I’d feel sick and probably lose my appetite.", false),
+    ("You overhear a coworker talking badly about you. Do you respond?",
+        "Yes, but maybe too harshly. I don’t like being talked about behind my back.", 0.7f, 0.7f, 0.6f),
 
-        ("You’re reading a magazine. You come across a full-page photo of a nude woman. You show it to your friend. He likes it. What do you do?",
-            "I ask what he likes about it. Beauty is subjective.", false),
+    ("You see a homeless person asking for money. What do you do?",
+        "I give what I can, even if I don’t have much. Ignoring them feels wrong.", 0.6f, 0.7f, 0.3f),
 
-        // Итерация 3
-        ("A friend gives you calfskin gloves. How do you feel about that?",
-            "Uneasy. Why calfskin? Were they necessary?", true),
+    ("You’re running late and someone cuts in front of you in line. How do you react?",
+        "I get mad fast, but I try to hold it in. Sometimes I just snap.", 0.4f, 0.6f, 0.4f),
 
-        ("You see someone drop a bag of groceries. Oranges roll all over the street. What do you do?",
-            "I run to help them pick everything up.", false),
+    ("Your child is misbehaving in public. What do you do?",
+        "I get embarrassed and try to calm them down quickly, even if inside I’m stressed.", 0.7f, 0.9f, 0.5f),
 
-        ("You see a man's wallet on the ground. No one is around. What do you do?",
-            "Pick it up and try to return it. It's not mine.", true),
+    ("You’re offered a bribe to keep quiet about a crime. What do you say?",
+        "No way. I want to believe I’d do the right thing, even if it’s hard.", 0.9f, 0.6f, 0.8f),
 
-        // Итерация 4
-        ("You hear a voice in your head telling you to do something dangerous. What do you do?",
-            "I try to stay calm and ignore it. Seek help if needed.", true),
+    ("Someone you trust betrays you. What’s your first thought?",
+        "How could they? My chest tightens just thinking about it.", 0.9f, 0.9f, 0.7f),
 
-        ("You hear about an animal testing lab near your home. How do you react?",
-            "With concern. I want to know if it's humane.", true),
+    ("You’re caught in a lie at work. How do you handle it?",
+        "Panic hits me immediately. I try to explain, but I stumble over words.", 0.8f, 0.8f, 0.8f),
 
-        ("You’re given a test with no clear right answer. You’re being judged. How do you feel?",
-            "Nervous, but I try to stay honest and composed.", true),
-// Итерация 5
-    ("You're brought into a silent room. A man in a grey suit tells you: \"Silence the informant or the entire operation falls apart.\" You know the informant speaks the truth. What do you do?",
-        "I look him in the eyes — cold, practiced, corporate eyes. I ask myself, “How much does survival cost when it’s built on lies?” Then I walk out, not because I’m brave, but because I’m tired of helping the machine grind bones into silence. Let it fall. Let truth scream through the rubble.", true),
+    ("You have to make a quick decision that affects many people. How do you feel?",
+        "Overwhelmed, heart racing. I want to do right, but I’m scared to mess up.", 0.9f, 0.7f, 0.6f),
 
-    ("You’re offered a job. High pay. Generous benefits. The catch? They test on animals. Real pain. Real eyes. The recruiter says, “They're not human. Yet.”",
-        "I ask if they've ever cried watching a dog die. They haven’t. I take the job anyway. Not because I agree — but because I want to see the rot from inside. And maybe, when the time comes, burn it all down with the swipe of a keycard and the pull of a fire alarm.", true),
+    ("You witness someone being bullied. What do you do?",
+        "I want to step in, but sometimes fear freezes me. I hate feeling powerless.", 0.7f, 0.8f, 0.5f),
 
-    ("You’re told a child will be spared if you turn in a political dissident. You’ve never met the child. You’ve read the dissident’s work.",
-        "Children die every day — invisible in refugee camps and forgotten corners of empire. But truth... truth lives longer. I keep my mouth shut. The system doesn’t need help killing. I’ll let it make its own monsters without my fingerprints.", true),
+    ("You lose an important possession. How do you react?",
+        "Frustrated and anxious. I replay what happened over and over.", 0.6f, 0.7f, 0.4f),
 
-    // Итерация 6: Decay in the Mirror
-    ("What does empathy mean to you? Don't define it. Feel it.",
-        "Empathy is the tremble in your hand when you see a man cry in a language you don’t understand. It’s the scream you swallow when you realize you could be them — and you didn’t help. It's not charity. It's guilt. It's blood without the wound.", true),
+    ("You’re stuck in traffic, late for an important meeting. What happens next?",
+        "I get tense, tapping the wheel, heart pounding. I try not to blow up.", 0.4f, 0.5f, 0.3f),
 
-    ("Have you ever stolen? Be honest — not moral.",
-        "I’ve taken bread. I’ve taken hours from someone’s shift. I’ve taken a life once, with a signature. Theft is relative. The rich steal futures. The poor steal food. Guess who gets arrested?", true),
+    ("Your sibling asks for a favor that will inconvenience you. What do you say?",
+        "I feel torn. I want to help but also feel annoyed. It’s complicated.", 0.5f, 0.7f, 0.4f),
 
-    ("You’re offered a government ID implant. “To keep you safe,” they say. You’ll never be lost. Never be free, either.",
-        "I ask where the tracking stops. They say, “Nowhere.” I nod. I smile. And I bury a knife behind the desk drawer. Safety's a nice word for slavery when the state knows your pulse rate and dreams.", true),
+    ("You discover a secret about someone close to you. What do you do?",
+        "I want to know everything but feel afraid of what it means.", 0.8f, 0.9f, 0.6f),
 
-    // Итерация 7: Melancholy and Machinery
-    ("Do you believe machines can feel?",
-        "Machines don’t weep, but neither do soldiers after enough blood. Feeling is a glitch — a stutter in logic. If machines ever feel, it won’t be because they’re programmed to. It’ll be because they weren’t supposed to.", true),
+    ("You’re alone and hear footsteps behind you at night. What’s your reaction?",
+        "Heart races, breath quickens. I try to stay calm but want to run.", 0.9f, 0.9f, 0.9f),
 
-    ("You meet someone who believes the world is ending in two weeks. They quit their job. They laugh more. They give things away. What do you think?",
-        "I envy them. Not because they’re right, but because they’re free. Maybe hope is a symptom of ignorance. Maybe that’s why the hopeless are always the smartest people in the room — and the saddest.", true),
+    ("You find out you failed an important test. How do you feel?",
+        "Disappointed and stressed. I’m worried about what comes next.", 0.6f, 0.8f, 0.3f),
 
-    ("You see a riot outside. People breaking, burning, screaming. Do you join them?",
-        "I don’t know. I think I light a match. Not out of anger, but out of clarity. Because sometimes the only way to be heard in a city of silence is to scream in fire.", true),
+    ("Your best friend cancels plans last minute. How do you respond?",
+        "I’m hurt and frustrated but try to hide it. It stings more than I admit.", 0.5f, 0.7f, 0.2f),
 
-    // Итерация 8: Quiet Tyrannies
-    ("What’s your daily routine? Tell the truth — not the version for social media.",
-        "I wake up to silence. I scroll through lies. I eat processed guilt. I work for coins I’ll spend on distraction. At night, I lie still, wondering if anything I did mattered — or if I’m just another cog praying to be broken.", false),
+    ("You have to lie to protect someone you love. How do you feel?",
+        "Guilty but resolved. Sometimes lying feels like the only option.", 0.8f, 0.8f, 0.9f),
 
-    ("How do you deal with stress?",
-        "I don’t. I wrap it in humor, drown it in alcohol, bury it under “I’m fine.” It leaks out in dreams. In traffic. In the way I flinch when someone says, “We need to talk.”", false),
+    ("You’re asked to speak in front of a crowd unexpectedly. What happens?",
+        "My voice shakes and I rush through words, heart pounding in my chest.", 0.7f, 0.9f, 0.6f),
 
-    ("What do you remember most vividly from childhood?",
-        "The moment I realized adults were scared, too. That nobody had a plan. That the world wasn’t fair — just organized chaos with better PR.", false),
+    ("You find a wallet on the street with ID inside. What do you do?",
+        "I want to return it but also feel nervous about getting involved.", 0.5f, 0.6f, 0.3f),
 
-    // Итерация 9: Philosophy in Fluorescent Light
-    ("What motivates you? Be honest — not poetic.",
-        "Fear. Mostly fear. Of dying irrelevant. Of being seen. Of not being seen. Of waking up at 60 with a drawer full of receipts and nothing to say about any of them.", false),
+    ("You lose your phone during a night out. What’s your reaction?",
+        "Panic sets in fast. I feel exposed and vulnerable.", 0.6f, 0.8f, 0.4f),
 
-    ("Do you fear death?",
-        "Not death. Oblivion. The kind where no one remembers you were even a whisper. At least a funeral means someone noticed you stopped existing.", false),
+    ("Someone cuts you off in traffic and yells at you. How do you react?",
+        "I want to yell back but mostly just feel adrenaline rush through me.", 0.4f, 0.5f, 0.4f),
 
-    ("How do you respond to failure?",
-        "I pretend it’s a lesson. I drink. I blame the system. Eventually I try again — not out of hope, but because doing nothing is even worse.", false),
+    ("You’re told you have only a few months to live. What goes through your mind?",
+        "Shock and fear. I think about everyone I love and what I’ll leave behind.", 0.9f, 1.0f, 0.7f),
 
-    // Итерация 10: The Deepest Lie
-    ("Are you more logical or emotional?",
-        "I tell myself I’m logical. But when the lights go out and it’s just me and the dark, it’s emotions that echo — old guilt, small joys, echoes of things I’ve never said.", false),
+    ("You find a child lost in a store. What do you do?",
+        "I try to calm them and find a worker fast. My heart races but I stay focused.", 0.7f, 0.8f, 0.3f),
 
-    ("Do you love animals?",
-        "Yes. Because they don’t lie. Because a dog’s eyes won’t judge you for being weak. Because a cat doesn’t care about your status. They’re purer than us — and that makes me hate myself.", false),
+    ("Your coworker takes credit for your work. How do you handle it?",
+        "I get angry, heart pounding, but I try to stay professional.", 0.7f, 0.7f, 0.6f),
 
-    ("Would you die for someone you don’t know?",
-        "Depends on the day. Some days I’d step in front of the bullet. Other days, I’d watch and whisper, “Better you than me.” We all wear masks. Mine just has a mirror.", true),
-};
+    ("You’re in a dark alley and someone approaches you. What do you do?",
+        "Fight or flight kicks in. I feel adrenaline surge and decide quickly.", 0.9f, 0.9f, 0.9f),
 
-        System.Random rnd = new System.Random();
+    ("You witness a car accident. What’s your immediate reaction?",
+        "Shock and urgency. I want to help but feel overwhelmed.", 0.8f, 0.7f, 0.5f),
 
-        for (int i = 0; i < questionAnswerPairs.Count; i += 3)
+    ("You have to confront a family member about a painful truth. What happens?",
+        "My voice is tense, and I rush my words, heart pounding like crazy.", 0.8f, 0.9f, 0.7f)
+     };
+
+
+        for (int i = 0; i < realHumanQA.Count; i += 3)
         {
-            DialogueIteration iteration = new DialogueIteration();
-
-            for (int j = 0; j < 3 && (i + j) < questionAnswerPairs.Count; j++)
+            DialogueIteration iteration = new DialogueIteration
             {
-                var (questionText, answerText, isMoral) = questionAnswerPairs[i + j];
+                questions = new List<QuestionData>()
+            };
 
-                DialogueEffect questionEffect = new DialogueEffect
+            for (int j = 0; j < 3 && (i + j) < realHumanQA.Count; j++)
+            {
+                var (questionText, answerText, moralLoad, personalExposure, deceptionPressure) = realHumanQA[i + j];
+                float totalPressure = moralLoad + personalExposure + deceptionPressure;
+                DialogueEffect answerEffect = new DialogueEffect
                 {
-                    delayChange = 0f,
-                    pupilChange = 0f,
-                    pulseChange = 0f
+                    delayChange = Mathf.Clamp(UnityEngine.Random.Range(0f, 0.15f) + totalPressure * 0.3f, 0f, 1.5f),
+                    pupilChange = Mathf.Clamp(UnityEngine.Random.Range(-0.15f, 0.15f) + (personalExposure + deceptionPressure - 1f) * 0.7f, -0.7f, 0.7f),
+                    pulseChange = Mathf.Clamp(UnityEngine.Random.Range(-15f, 15f) + (moralLoad + deceptionPressure) * 40f - 10f, -30f, 60f)
                 };
-
-                DialogueEffect answerEffect = new DialogueEffect();
-
-                if (isMoral)
-                {
-                    answerEffect.delayChange = UnityEngine.Random.Range(4f, 5f);
-                    answerEffect.pupilChange = UnityEngine.Random.Range(0.8f, 1f) - 0.5f;
-                    bool pulseSpike = (rnd.NextDouble() < 0.3);
-                    answerEffect.pulseChange = pulseSpike ? UnityEngine.Random.Range(120f, 160f) - 75f : UnityEngine.Random.Range(-15f, 15f);
-                }
-                else
-                {
-                    answerEffect.delayChange = UnityEngine.Random.Range(0f, 1f);
-                    answerEffect.pupilChange = UnityEngine.Random.Range(0.4f, 0.7f) - 0.5f;
-                    answerEffect.pulseChange = UnityEngine.Random.Range(-15f, 15f);
-                }
 
                 QuestionData questionData = new QuestionData
                 {
                     questionText = questionText,
-                    effect = questionEffect,
                     answer = new AnswerData
                     {
                         answerText = answerText,
@@ -577,7 +576,149 @@ public class DialogueSystem : MonoBehaviour
             iterations.Add(iteration);
         }
 
-        Debug.Log("Generated 10 iterations with 3 questions each, Blade Runner style.");
+        Debug.Log("Generated fully naturalistic 30 iterations with emotional biometrics.");
+    }
+
+    [ContextMenu("Generate Full 30 Iterations Dialogue")]
+    public void GenerateFullDialogueRep()
+    {
+        iterations = new List<DialogueIteration>();
+
+        List<(string question, string answer, float moralLoad, float personalExposure, float deceptionPressure)> qaTriplets =
+            new List<(string, string, float, float, float)>
+        {
+              ("You're watching TV late at night. A wasp lands on your forearm and crawls slowly toward your wrist. No one else is around. What do you do?",
+            "Reminds me of my uncle's porch. Summer evenings, static from the screen... I’d just freeze, wait for it to leave. I hate killing things, even bugs.", 0.3f, 0.7f, 0.2f),
+
+        ("You're walking through a dry valley, and see a tortoise struggling, flipped on its back. Its legs are scraping dust. No one’s around. What do you do?",
+            "I’d kneel and turn it over. I did that once as a kid in Arizona. Couldn’t just leave it. It looked terrified.", 0.8f, 0.6f, 0.3f),
+
+        ("Think of your mother. Now give me words—just single ones—that describe her to you.",
+            "Lavender. Strong. Tired. She used to hum while washing dishes. I still hear it sometimes when it’s quiet.", 0.3f, 0.9f, 0.1f),
+
+        ("You’re sitting with a child who proudly shows you his butterfly collection. Some are pinned. Some still flutter weakly. What do you do?",
+            "God… that’s disturbing. I'd ask him gently why he did that. Maybe he doesn’t understand. But it really bothers me.", 0.7f, 0.6f, 0.2f),
+
+        ("At a family banquet, you see a fly crawl across a freshly glazed roast. No one notices. What do you do?",
+            "I’d quietly switch plates or warn the person next to me. I’m not into drama—but yeah, that’s disgusting.", 0.2f, 0.3f, 0.1f),
+
+        ("You flip through a fashion magazine. There’s a nude photo. You show it to a friend. He chuckles. What’s your reaction?",
+            "Guess I’d laugh too. Depends on the friend. Back in college, we’d pass dumb stuff around just to break tension.", 0.1f, 0.5f, 0.2f),
+
+        ("Someone gifts you gloves—fine calfskin. You realize they’re real leather. What do you feel?",
+            "Conflicted. I like the feel... but there’s this voice in me that flinches. I stopped wearing leather a while ago.", 0.6f, 0.7f, 0.2f),
+
+        ("You’re walking home in the rain. A woman drops her groceries—apples roll into the street. What do you do?",
+            "I’d help. No question. I actually did once, outside 8th and Baker. It felt... right. Human.", 0.3f, 0.6f, 0.1f),
+
+        ("You spot a wallet on the ground. It's thick with cash. No one around. What happens next?",
+            "I’d pick it up and try to find the owner. I know that sounds idealistic, but I’ve lost things before too.", 0.6f, 0.5f, 0.3f),
+
+        ("You’re alone, and suddenly you hear a voice telling you to burn everything. It sounds like your own voice. What do you do?",
+            "That’s terrifying. I’d try to ground myself, maybe call someone. I’ve had… episodes. I know the signs now.", 0.9f, 0.7f, 0.6f),
+
+        // Продолжение (20 ещё):
+        ("You dream that you're drowning, and no one saves you. You wake up gasping. What do you do next?",
+            "Sit up, try to breathe slow. Those dreams come back sometimes—since I was little. I think it’s about control.", 0.7f, 0.8f, 0.4f),
+
+        ("You walk into your kitchen and see a rat eating from your plate. It doesn't run. What do you feel?",
+            "Revulsion. But also weirdly… sad? Like, what made it that desperate? I’d scare it off and clean everything.", 0.5f, 0.6f, 0.2f),
+
+        ("You’re at a funeral. The widow smiles while giving her speech. What do you think?",
+            "Grief wears weird masks. I wouldn’t judge her. When my dad died, I laughed during the eulogy. Nerves, I guess.", 0.4f, 0.7f, 0.2f),
+
+        ("You find out your neighbor is beating his dog. No one else knows. What do you do?",
+            "I’d report him. I couldn’t just ignore that. Even if it caused problems between us.", 0.9f, 0.5f, 0.3f),
+
+        ("You're walking with a child. He steps on a snail. He laughs. How do you respond?",
+            "I’d kneel, look him in the eye, and explain why that matters. Kids don’t always know. But they can learn.", 0.7f, 0.8f, 0.2f),
+
+        ("You’re in a lab. A chimpanzee is hooked up to wires. It's conscious. You're told it’s fine. What do you do?",
+            "I’d want to know what’s going on. I don’t trust ‘it’s fine’ when the subject looks terrified.", 0.8f, 0.6f, 0.4f),
+
+        ("You're eating dinner and suddenly think about death. Your own. What do you do?",
+            "I’ve had that happen. The fork just hangs in the air. I breathe. Remind myself I’m not gone yet.", 0.6f, 0.7f, 0.3f),
+
+        ("You hear someone screaming in the alley behind your apartment. Do you open the door?",
+            "Yes. Carefully. I don’t want to live in a world where we ignore screams.", 0.8f, 0.5f, 0.3f),
+
+        ("A child hands you a drawing. It’s of a dead bird with blood. He smiles. What do you say?",
+            "I’d ask him to tell me the story behind it. Try to understand before judging. Kids express dark things sometimes.", 0.6f, 0.7f, 0.3f),
+
+        ("You’re told the person you love isn’t real. Never was. Just code. What do you feel?",
+            "...Like the air’s been sucked out. I'd try to deny it. But deep down... I'd already wondered.", 0.9f, 0.9f, 0.8f),
+
+
+             ("You get a call in the middle of the night. No one speaks. You just hear quiet breathing. What do you do?",
+        "It happened once, actually. I sat there, phone to my ear, heart racing. Like they knew me. I couldn’t sleep after.", 0.5f, 0.7f, 0.3f),
+
+    ("You find a dog on the side of the road. Injured, bleeding. People just walk past. What do you do?",
+        "I’d stop. Wrap it in my jacket if I had to. I still remember doing that with a stray when I was twelve.", 0.8f, 0.8f, 0.2f),
+
+    ("A stranger tells you a secret that could ruin someone's life. Do you keep it?",
+        "Depends on the secret. I’ve kept things before, and I’ve regretted it. Silence can be a weapon too.", 0.7f, 0.6f, 0.5f),
+
+    ("You come home and find your apartment exactly how you left it—but something feels wrong. What do you do?",
+        "Check everything. Windows. Closets. It's like a sixth sense. Once, it turned out a neighbor had used my key.", 0.4f, 0.7f, 0.2f),
+
+    ("You’re in a burning building. You can save either your friend… or five strangers. You have seconds. What do you choose?",
+        "God... that’s awful. I think I’d go for my friend. I know it’s selfish. But I know them. I couldn’t leave them.", 0.95f, 0.7f, 0.6f),
+
+    ("You remember your first lie. Who did you lie to? Why?",
+        "My father. I broke his watch and blamed the cat. He never asked again—just looked at me differently after that.", 0.6f, 0.9f, 0.3f),
+
+    ("You see a soldier crying in an alley, uniform stained with blood. He says nothing. Do you approach him?",
+        "Yes. Carefully. I’ve seen people shattered like that. Sometimes presence is all you can offer.", 0.8f, 0.8f, 0.3f),
+
+    ("You’re told someone you love committed a serious crime. All evidence points to them. What do you feel?",
+        "Disbelief, then guilt. I’d start doubting myself. Love’s blind. Maybe I never really knew them.", 0.8f, 0.7f, 0.4f),
+
+    ("You hear a woman sobbing through a thin motel wall. The receptionist says to ignore it. Do you?",
+        "I wouldn’t. I’ve heard that kind of sobbing. You don’t forget that sound. I’d knock. I’d say something.", 0.9f, 0.8f, 0.2f),
+
+    ("You wake up one day and all your memories are gone. People say you were someone cruel. Do you believe them?",
+        "Part of me would. I mean… if everyone says it? But maybe I'd hope I’m someone different now.", 0.85f, 0.9f, 0.7f)
+
+        };
+
+        // Разбиваем вручную по 3 вопроса на 1 итерацию
+        for (int i = 0; i < qaTriplets.Count; i += 3)
+        {
+            DialogueIteration iteration = new DialogueIteration
+            {
+                questions = new List<QuestionData>()
+            };
+
+            for (int j = 0; j < 3 && (i + j) < qaTriplets.Count; j++)
+            {
+                var (questionText, answerText, moralLoad, personalExposure, deceptionPressure) = qaTriplets[i + j];
+
+                float totalPressure = moralLoad + personalExposure + deceptionPressure;
+
+                DialogueEffect answerEffect = new DialogueEffect
+                {
+                    delayChange = Mathf.Clamp(UnityEngine.Random.Range(0.2f, 0.5f) + totalPressure * 1.5f, 2f, 5f),
+                    pupilChange = Mathf.Clamp(UnityEngine.Random.Range(-0.1f, 0.1f) + (personalExposure + deceptionPressure - 1f) * 0.5f, -0.5f, 0.5f),
+                    pulseChange = Mathf.Clamp(UnityEngine.Random.Range(-10f, 10f) + (moralLoad + deceptionPressure) * 30f - 15f, -20f, 40f)
+                };
+
+                QuestionData questionData = new QuestionData
+                {
+                    questionText = questionText,
+                    answer = new AnswerData
+                    {
+                        answerText = answerText,
+                        effect = answerEffect
+                    }
+                };
+
+                iteration.questions.Add(questionData);
+            }
+
+            iterations.Add(iteration);
+        }
+
+        Debug.Log("Generated fully naturalistic 30 iterations with emotional biometrics.");
     }
 
     void UpdateStatsUI()
@@ -607,7 +748,6 @@ public class DialogueIteration
 public class QuestionData
 {
     public string questionText;
-    public DialogueEffect effect;
     public AnswerData answer;
 }
 

@@ -28,6 +28,10 @@ public class PlayerInteract : MonoBehaviour
 
     private void Update()
     {
+         if (PauseMenu.IsPaused)
+        {
+            return;
+        }
         if (CameraTranzition.InTransition || CameraTranzition.InPC)
         {
             _interactionText.text = "";

@@ -54,6 +54,10 @@ public class OpenNotebook : MonoBehaviour
 
     private void Update()
     {
+        if (PauseMenu.IsPaused)
+        {
+            return;
+        }
         HandleInput();
         SmoothRotate();
     }

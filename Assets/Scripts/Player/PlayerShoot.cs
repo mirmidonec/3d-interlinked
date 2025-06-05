@@ -89,6 +89,10 @@ public class PlayerShoot : MonoBehaviour
 
     private void Update()
     {
+         if (PauseMenu.IsPaused)
+        {
+            return;
+        }
          if (CameraTranzition.InPC)
         {
             return;

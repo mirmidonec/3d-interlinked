@@ -56,6 +56,10 @@ public class InventoryManager : MonoBehaviour
 
     private void Update()
     {
+        if (PauseMenu.IsPaused)
+        {
+            return;
+        }
         if (!IsEquipped) return;
 
         if (Input.GetKeyDown(KeyCode.Q))

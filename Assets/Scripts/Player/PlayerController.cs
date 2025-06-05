@@ -61,7 +61,7 @@ public class PlayerController : MonoBehaviour
 
 
     public AudioClip Sit;
-    public bool IsDialogue;
+    public bool IsDialogue = false;
 
 
 
@@ -77,6 +77,10 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        if (PauseMenu.IsPaused)
+        {
+            return;
+        }
          if (CameraTranzition.InTransition)
         {
             return;
@@ -182,7 +186,7 @@ public class PlayerController : MonoBehaviour
         characterController.Move(moveDirection * Time.deltaTime);
     }
 
-    public NpcBehaviour npc;
+    
     public void HandleSit()
     {
     bool questCompleted = QuestManager.Instance.IsQuestCompleted(1);
@@ -208,11 +212,11 @@ public class PlayerController : MonoBehaviour
             currentInput = Vector2.zero;
             currentInputRaw = Vector2.zero;
 
-            if (!npc.gameObject.activeSelf)
+            if (!NpcChoiser.Instance.currentNpc.gameObject.activeSelf)
             {
-                npc.gameObject.SetActive(true);
+                NpcChoiser.Instance.currentNpc.gameObject.SetActive(true);
             }
-            if (npc.hasSat)
+            if (NpcChoiser.Instance.currentNpc.hasSat)
             {
                 PlayerEntity.Instance.InteractDistance = 4.5f;
             }
