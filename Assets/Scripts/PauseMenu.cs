@@ -23,7 +23,6 @@ public class PauseMenu : MonoBehaviour
     public enum Language { Russian, English }
     public static Language CurrentLanguage = Language.Russian;
 
-    public GameObject languagePanel;
 
     public GameObject IntroPanel;
 
@@ -39,12 +38,10 @@ public class PauseMenu : MonoBehaviour
         LoadData();
         if (!IsFirstAttemp)
         {
-            languagePanel.SetActive(false);
             IntroPanel.SetActive(true);
         }
         else
         {
-
             Cursor.lockState = CursorLockMode.Confined;
             Cursor.visible = true;
             IsFirstAttemp = false;

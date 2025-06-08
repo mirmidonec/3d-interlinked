@@ -32,8 +32,6 @@ public class IntroText : MonoBehaviour
 
     private void Start()
     {
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
         if (!IsFirstAttempt)
         {
             _transitionPanel.SetActive(false);
@@ -65,10 +63,9 @@ public class IntroText : MonoBehaviour
         }
     }
 
-
-    private void Update()
+    public void EntryNext()
     {
-        if (Input.GetButtonDown("Fire1") && _isVisible)
+        if (_isVisible)
         {
             HandleNextEntry();
         }
@@ -126,6 +123,8 @@ public class IntroText : MonoBehaviour
 
         yield return new WaitForSeconds(2f);
         _player.enabled = true;
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
         isIntro = false;
         IsFirstAttempt = false;
         yield return new WaitForSeconds(1f);
