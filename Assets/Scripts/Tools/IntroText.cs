@@ -117,7 +117,7 @@ public class IntroText : MonoBehaviour
     {
         if (!_hasPlayedFinalSound && _speakerAudioSource != null && _finalSound != null)
         {
-            _speakerAudioSource.PlayOneShot(_finalSound);
+           // _speakerAudioSource.PlayOneShot(_finalSound);
             _hasPlayedFinalSound = true;
         }
 
@@ -128,7 +128,8 @@ public class IntroText : MonoBehaviour
         isIntro = false;
         IsFirstAttempt = false;
         yield return new WaitForSeconds(1f);
-
+        
+QuestManager.Instance.Init(0);
         if (_transitionPanel != null)
         {
             var transition = _transitionPanel.GetComponent<Transition>();

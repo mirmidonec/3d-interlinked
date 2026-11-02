@@ -96,7 +96,6 @@ public class Chair : Interactable
             }
             else
             {
-                QuestManager.Instance.Init(0);
                 if (PauseMenu.CurrentLanguage == PauseMenu.Language.English)
                 {
                     Message = "Inspect room before sit";

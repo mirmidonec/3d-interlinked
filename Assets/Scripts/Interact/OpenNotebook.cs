@@ -25,14 +25,19 @@ public class OpenNotebook : MonoBehaviour
     private bool _isForward = true;
     public GameObject crosshair;
 
+
+        public GameObject note;
+
     private void OnEnable()
     {
         crosshair.SetActive(false);
         _source.PlayOneShot(_turnPage);
+        note.SetActive(true);
     }
     private void OnDisable()
     {
         crosshair.SetActive(true);
+        note.SetActive(false);
     }
     private void Awake()
     {
@@ -54,6 +59,7 @@ public class OpenNotebook : MonoBehaviour
 
     private void Update()
     {
+
         if (PauseMenu.IsPaused)
         {
             return;

@@ -32,7 +32,7 @@ public class Gun : Interactable
         {
             if (PauseMenu.CurrentLanguage == PauseMenu.Language.English)
             {
-                Message = "Not now";
+                Message = "The pistol is in place. Good";
             }
             else
             {

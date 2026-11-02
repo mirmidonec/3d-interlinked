@@ -77,7 +77,7 @@ public class Ending : MonoBehaviour
     }
     public void Rerty()
     {
-        SceneManager.LoadScene(0);
+        SceneManager.LoadScene(1);
     }
     private IEnumerator TypeSequence()
     {

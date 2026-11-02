@@ -46,8 +46,15 @@ public class PauseMenu : MonoBehaviour
             Cursor.visible = true;
             IsFirstAttemp = false;
         }
+
+        CurrentLanguage = Language.English;
     }
 
+
+    private void Start()
+    {
+        CurrentLanguage = Language.English;
+    }
     public bool activeLocal;
     public void ChangeLocale(int id)
     {

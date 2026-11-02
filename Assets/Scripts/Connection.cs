@@ -91,32 +91,11 @@ public class Connection : MonoBehaviour
         }
     }
 
-    private bool Validation()
-    {
-        return !string.IsNullOrEmpty(usernameField.text) && !string.IsNullOrEmpty(passwordField.text) &&
-               usernameField.text.Length > 4 && passwordField.text.Length > 4;
-    }
-
     public Canvas canvas;
 
     public void LoginOrRegister()
     {
         errorText.text = ""; // Очищаем перед началом
-
-        if (!Validation())
-        {
-            if (PauseMenu.CurrentLanguage == PauseMenu.Language.English)
-            {
-                errorText.text = "Validation error! Check the entered data.";
-            }
-            else
-            {
-                errorText.text = "Ошибка проверки! Проверьте введенные данные.";
-            }
-            Debug.Log("Validation failed: " + errorText.text);
-            source.PlayOneShot(clip);
-            return;
-        }
 
         string login = usernameField.text;
         string password = passwordField.text;
@@ -210,7 +189,7 @@ public class Connection : MonoBehaviour
         canvas.GetComponent<GraphicRaycaster>().enabled = false;
         if (PauseMenu.CurrentLanguage == PauseMenu.Language.English)
         {
-            TextNotify.GetComponent<TMP_Text>().text = "WELCOME BACK!";
+            TextNotify.GetComponent<TMP_Text>().text = "WELCOME BACK OFFICER!";
         }
         else
         {

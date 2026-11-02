@@ -33,11 +33,11 @@ public class RuningStroke : MonoBehaviour
     {
         ScrollText();
 
-        if (Input.GetKeyDown(KeyCode.F7))
+        if (Input.GetKeyDown(KeyCode.F5))
         {
             StartCoroutine(Transition.Instance.FadeIn());
         }
-        else if (Input.GetKeyDown(KeyCode.F5))
+        else if (Input.GetKeyDown(KeyCode.F6))
         {
             Application.Quit();
         }

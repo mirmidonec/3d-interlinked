@@ -15,6 +15,7 @@ public class Transition : MonoBehaviour
         Instance = this;
     }
 
+
     public IEnumerator FadeOut()
     {
         Color color = _blackScreen.color;
