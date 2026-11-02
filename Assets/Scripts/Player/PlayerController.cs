@@ -1,5 +1,5 @@
 using System.Collections;
-using System.Collections.Generic;
+
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
@@ -227,7 +227,7 @@ public class PlayerController : MonoBehaviour
 
     private void HandleStandUp()
     {
-        if (Input.GetKeyDown(KeyCode.Space) && standPoint != null)
+        if (Input.GetKeyDown(KeyCode.Q) && standPoint != null && !InventoryManager.Instance.IsEquipped)
         {
             isSitting = false;
             transform.position = standPoint.position;

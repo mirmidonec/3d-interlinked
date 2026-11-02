@@ -11,6 +11,8 @@ public class DialogueSystem : MonoBehaviour
 {
     [Header("UI")]
     public TMP_Text dialogueText;
+
+    public static DialogueSystem instance;
     public Button[] questionButtons;
     public float typingSpeed = 0.05f;
 
@@ -175,6 +177,8 @@ public class DialogueSystem : MonoBehaviour
 
 
     }
+
+  
     void UpdateNaturalFluctuations()
     {
         if (!isTyping && !isWaitingForClick)
@@ -312,6 +316,7 @@ public class DialogueSystem : MonoBehaviour
     }
     void OnFinalChoice(bool isReplicant)
     {
+        iScHOICErEPLICANT = isReplicant;
         FinalChoicePanel.SetActive(false);
         AnswerPanel.SetActive(true);
         DBdata.CurrentSessionResults.Add(new SessionResult
@@ -1063,6 +1068,12 @@ public class DialogueSystem : MonoBehaviour
         HandleBlinking(pulseText, pulseOutOfRange, ref pulseBlinkCoroutine);
         HandleBlinking(pupilText, pupilOutOfRange, ref pupilBlinkCoroutine);
         HandleBlinking(delayText, delayOutOfRange, ref delayBlinkCoroutine);
+    }
+    public bool iScHOICErEPLICANT = false;
+
+    private void Awake()
+    {
+        instance = this;
     }
 
 }

@@ -82,6 +82,7 @@ public class NpcBehaviour : Interactable
             HandleSit();
         }
     }
+    public Ending end;
 
     private void HandleFootsteps()
     {
@@ -133,7 +134,7 @@ public class NpcBehaviour : Interactable
             Dialogue.SetActive(true);
             Message = "";
         }
-        else if (dialogue.IsDone)
+        else if (dialogue.IsDone && !DialogueSystem.instance.iScHOICErEPLICANT)
         {
             Message = PauseMenu.CurrentLanguage == PauseMenu.Language.English
                 ? "You can go home now"
@@ -141,6 +142,11 @@ public class NpcBehaviour : Interactable
 
             QuestManager.Instance.CompleteStep(0);
             StandUpAndLeave();
+        } else if (dialogue.IsDone && DialogueSystem.instance.iScHOICErEPLICANT)
+        {
+             Message = PauseMenu.CurrentLanguage == PauseMenu.Language.English
+                ? "I need to kill him before he realizes."
+                : "Можешь идти домой";
         }
         else
         {
@@ -210,7 +216,66 @@ public class NpcBehaviour : Interactable
         Destroy(gameObject);
     }
 
+public AudioSource source2;
+public AudioClip chase;
+public AudioClip final;
+public void StandUpAndChasePlayer()
+{
+    if (isDead) return;
 
+    StopAllCoroutines();
+
+    if (!agent.enabled)
+        agent.enabled = true;
+
+    isGoingBack = false;
+    hasSat = false;
+    hasOpenedDoor = true;
+
+    transform.position = sitPoint.position + sitPoint.forward * 0.5f;
+    transform.rotation = sitPoint.rotation;
+
+    agent.isStopped = false;
+    agent.SetDestination(player.transform.position);
+    source2.clip = chase;
+    source2.Play();
+
+    StartCoroutine(ChasePlayerRoutine());
+}
+
+[SerializeField] private float catchDistance = 1.5f;
+
+private IEnumerator ChasePlayerRoutine()
+{
+    while (!isDead)
+    {
+        if (agent.enabled && agent.isOnNavMesh)
+        {
+            agent.SetDestination(player.transform.position);
+
+            animator.SetBool("isWalking", agent.velocity.magnitude > 0.1f);
+
+            if (Vector3.Distance(transform.position, player.transform.position) <= catchDistance)
+            {
+                agent.isStopped = true;
+                animator.SetBool("isWalking", false);
+
+                OnPlayerCaught(); // Твой метод при поимке
+
+                yield break;
+            }
+        }
+
+        yield return new WaitForSeconds(0.2f);
+    }
+}
+
+private void OnPlayerCaught()
+{
+    source2.Stop();
+    source2.PlayOneShot(final);
+    end.StartEnd();
+}
 
     private void HandleSit()
     {

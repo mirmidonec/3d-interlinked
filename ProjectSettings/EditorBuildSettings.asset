@@ -8,12 +8,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/gameplay.unity
     guid: 7f892220886a5b14bb969cd39cab0f64
-  - enabled: 1
-    path: Assets/Scenes/varik2.unity
-    guid: 5aa3226b4a0c25f458aeb83d62cb123d
-  - enabled: 1
-    path: Assets/Scenes/mainmenu.unity
-    guid: 3d0e8d22e0008a04db26fed274859ff3
   m_configObjects:
     com.unity.addressableassets: {fileID: 11400000, guid: bd34b61dba1948542b5d7c624302d258, type: 2}
     com.unity.localization.settings: {fileID: 11400000, guid: ad0e40813979ed64183ec14e20fa22c7, type: 2}
