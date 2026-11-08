@@ -314,6 +314,12 @@ public class DialogueSystem : MonoBehaviour
         replicantButton.onClick.AddListener(() => OnFinalChoice(true));
         humanButton.onClick.AddListener(() => OnFinalChoice(false));
     }
+  public CameraTranzition tranz;
+    public void EbalsaGryzno()
+    {
+        FinalChoicePanel.SetActive(false);
+        StartCoroutine(tranz.TransitionToTarget());
+    }
     void OnFinalChoice(bool isReplicant)
     {
         iScHOICErEPLICANT = isReplicant;
@@ -374,6 +380,10 @@ public class DialogueSystem : MonoBehaviour
         string suspectLabel = PauseMenu.CurrentLanguage == PauseMenu.Language.English ? "Suspect" : "Подозреваемый";
 
         yield return TypeLine($"{detectiveLabel}: {question.questionText}");
+        if (DialogueLog.Instance != null)
+{
+    DialogueLog.Instance.AddDetectiveMessage(question.questionText);
+}
         DBdata.Questions.Add(question); // добавили в БД!
 
         float delay = question.answer.effect.delayChange;
@@ -396,6 +406,10 @@ public class DialogueSystem : MonoBehaviour
         UpdateStatsUI();
 
         yield return TypeLine($"{suspectLabel}: {question.answer.answerText}");
+        if (DialogueLog.Instance != null)
+{
+    DialogueLog.Instance.AddSuspectMessage(question.answer.answerText);
+}
 
         pulseHistory.Add(pulse);
         pupilHistory.Add(pupilDilation);

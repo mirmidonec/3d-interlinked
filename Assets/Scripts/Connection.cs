@@ -15,7 +15,7 @@ public class Connection : MonoBehaviour
     public static string dbName = "URI=file:playersData.db";
     [HideInInspector] public static string currentUser;
 
-
+    public GameObject logdialog;
     public GameObject panel;
     public GameObject TextNotify;
 
@@ -95,7 +95,7 @@ public class Connection : MonoBehaviour
 
     public void LoginOrRegister()
     {
-        errorText.text = ""; // Очищаем перед началом
+        errorText.text = "";
 
         string login = usernameField.text;
         string password = passwordField.text;
@@ -107,7 +107,6 @@ public class Connection : MonoBehaviour
                 connection.Open();
                 using (var command = connection.CreateCommand())
                 {
-                    // Проверяем существование пользователя
                     command.CommandText = "SELECT COUNT(*) FROM Users WHERE Login = @login;";
                     command.Parameters.AddWithValue("@login", login);
                     int userCount = Convert.ToInt32(command.ExecuteScalar());
@@ -115,7 +114,6 @@ public class Connection : MonoBehaviour
 
                     if (userCount > 0)
                     {
-                        // Логиним существующего пользователя
                         command.CommandText = "SELECT Password FROM Users WHERE Login = @login;";
                         command.Parameters.Clear();
                         command.Parameters.AddWithValue("@login", login);
@@ -134,7 +132,6 @@ public class Connection : MonoBehaviour
                             }
                             Debug.Log($"Login successful for user: {login}");
 
-                            // Загрузка статистики
                             LoadPlayerStats(command, login);
                         }
                         else
@@ -187,6 +184,7 @@ public class Connection : MonoBehaviour
         panel.SetActive(false);
         TextNotify.SetActive(true);
         canvas.GetComponent<GraphicRaycaster>().enabled = false;
+        logdialog.SetActive(true);
         if (PauseMenu.CurrentLanguage == PauseMenu.Language.English)
         {
             TextNotify.GetComponent<TMP_Text>().text = "WELCOME BACK OFFICER!";
@@ -256,7 +254,6 @@ public class Connection : MonoBehaviour
 
                     foreach (var q in DBdata.Questions)
                     {
-                        // 1. Сохраняем вопрос с текстом ответа
                         command.Parameters.Clear();
                         command.CommandText = @"
         INSERT OR REPLACE INTO Questions (Text, AnswerText)
@@ -265,7 +262,6 @@ public class Connection : MonoBehaviour
                         command.Parameters.AddWithValue("@answerText", q.answer.answerText);
                         command.ExecuteNonQuery();
 
-                        // 2. Сохраняем ответ с эффектами
                         command.Parameters.Clear();
                         command.CommandText = @"
         INSERT OR REPLACE INTO Answers (Text, PupilChange, DelayChange, PulseChange)
