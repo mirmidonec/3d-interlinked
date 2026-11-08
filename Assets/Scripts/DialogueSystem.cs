@@ -73,6 +73,10 @@ public class DialogueSystem : MonoBehaviour
         smoothChangeCoroutine = StartCoroutine(SmoothChange(newPulse, newPupil));
     }
 
+private void Awake()
+    {
+        instance = this;
+    }
     IEnumerator SmoothChange(float targetPulse, float targetPupil)
     {
         float duration = 1f;
@@ -102,6 +106,7 @@ public class DialogueSystem : MonoBehaviour
 
         UpdateStatsUI();
     }
+
     IEnumerator BlinkText(TMP_Text text)
     {
         Color normalColor = text.color;
@@ -310,11 +315,13 @@ public class DialogueSystem : MonoBehaviour
 
         replicantButton.onClick.RemoveAllListeners();
         humanButton.onClick.RemoveAllListeners();
-
+        isFinaleStart = true;
         replicantButton.onClick.AddListener(() => OnFinalChoice(true));
         humanButton.onClick.AddListener(() => OnFinalChoice(false));
     }
   public CameraTranzition tranz;
+
+  public bool isFinaleStart = false;
     public void EbalsaGryzno()
     {
         FinalChoicePanel.SetActive(false);
@@ -348,6 +355,7 @@ public class DialogueSystem : MonoBehaviour
             vignette.intensity.value = 0f;
         }
         IsDone = true;
+        isFinaleStart = false;
         NpcChoiser.Instance.currentNpc.CloseDialogue();
     }
     private float currentDelay = 0f;
@@ -1084,11 +1092,6 @@ public class DialogueSystem : MonoBehaviour
         HandleBlinking(delayText, delayOutOfRange, ref delayBlinkCoroutine);
     }
     public bool iScHOICErEPLICANT = false;
-
-    private void Awake()
-    {
-        instance = this;
-    }
 
 }
 

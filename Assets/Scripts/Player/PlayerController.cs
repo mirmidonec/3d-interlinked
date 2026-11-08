@@ -120,6 +120,12 @@ public class PlayerController : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.Q))
             {
+                if (DialogueSystem.instance != null)
+                {
+                    if(DialogueSystem.instance.isFinaleStart){
+                    DialogueSystem.instance.FinalChoicePanel.SetActive(true);
+                    }
+                }
               StartCoroutine(tranz.TransitionToInitial());
             }
         }

@@ -187,7 +187,7 @@ public class Connection : MonoBehaviour
         logdialog.SetActive(true);
         if (PauseMenu.CurrentLanguage == PauseMenu.Language.English)
         {
-            TextNotify.GetComponent<TMP_Text>().text = "WELCOME BACK OFFICER!";
+            TextNotify.GetComponent<TMP_Text>().text = " ";
         }
         else
         {
