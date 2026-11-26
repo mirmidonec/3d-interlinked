@@ -38,6 +38,7 @@ public class IntroText : MonoBehaviour
             _player.enabled = true;
             isIntro = false;
             _ost.SetActive(true);
+            QuestManager.Instance.Init(0);
             return;
         }
         isIntro = true;

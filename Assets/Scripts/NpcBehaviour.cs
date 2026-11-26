@@ -305,6 +305,7 @@ private void OnPlayerCaught()
         if (isDead) return;
 
         isDead = true;
+        GameState.SuspectKilled = true;
         animator.SetBool("isWalking", false);
         animator.SetTrigger("die");
         footSource.PlayOneShot(dying);

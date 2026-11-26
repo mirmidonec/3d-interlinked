@@ -56,6 +56,7 @@ public class Ending : MonoBehaviour
             firstText = "The end";
             secondText = "The suspect was ";
         }
+        variableValue = NpcChoiser.Instance.currentNpc.IsReplicant ? "a replicant" : "a human";
         NpcChoiser.Instance.currentNpc.Condition = variableValue;
         if (PauseMenu.CurrentLanguage == PauseMenu.Language.Russian)
         {
@@ -98,10 +99,18 @@ public class Ending : MonoBehaviour
         Cursor.lockState = CursorLockMode.Confined;
         Cursor.visible = true;
         yield return StartCoroutine(TypeTextWithRichTags(secondTMP, fullSecondText));
-        button1.SetActive(true);
-        yield return new WaitForSecondsRealtime(0.5f);
-        button2.SetActive(true);
-        IsEnding = false;
+     yield return new WaitForSecondsRealtime(1.5f);
+if (DayUI.Instance != null)
+{
+    DayUI.Instance.ShowDayEnd();   // IsEnding остаётся true: пауза заблокирована
+}
+else
+{
+    button1.SetActive(true);
+    yield return new WaitForSecondsRealtime(0.5f);
+    button2.SetActive(true);
+    IsEnding = false;
+}
     }
 
     private IEnumerator TypeTextWithRichTags(TMP_Text tmpField, string text)

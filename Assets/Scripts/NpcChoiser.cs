@@ -1,6 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class NpcChoiser : MonoBehaviour
@@ -10,22 +7,22 @@ public class NpcChoiser : MonoBehaviour
 
     public static NpcChoiser Instance;
 
-    private static int lastSelectedIndex = -1;
-
     private void Awake()
     {
         Instance = this;
         ChooseNextNpc();
     }
 
+    /// <summary>
+    /// Каждый день случайный подозреваемый. Так личность (человек / репликант)
+    /// не угадывается по номеру дня, даже если в игре всего 2 NPC.
+    /// </summary>
     public void ChooseNextNpc()
     {
         if (npcs != null && npcs.Length > 0)
         {
-            lastSelectedIndex = (lastSelectedIndex + 1) % npcs.Length;
-
-            currentNpc = npcs[lastSelectedIndex];
-            Debug.Log($"Выбран NPC: {currentNpc.name} (индекс {lastSelectedIndex})");
+            currentNpc = npcs[Random.Range(0, npcs.Length)];
+            Debug.Log($"Выбран NPC: {currentNpc.name}");
         }
         else
         {
@@ -33,4 +30,3 @@ public class NpcChoiser : MonoBehaviour
         }
     }
 }
-

@@ -59,11 +59,10 @@ public class PlayerShoot : MonoBehaviour
 
     public bool IsEquipped => InventoryManager.Instance.EquippedItem == InventoryManager.ItemType.Revolver;
 
-    public int CurrentAmmo => _currentAmmo;
 
     public PlayerController player;
 
-
+public int CurrentAmmo => GameState.Ammo;
     private void Awake()
     {
         _characterController = GetComponent<CharacterController>();
@@ -74,7 +73,6 @@ public class PlayerShoot : MonoBehaviour
         if (_audioSource == null)
             Debug.LogWarning("AudioSource is not assigned.");
 
-        _currentAmmo = _maxAmmo;
     }
 
     private void Start()
@@ -115,7 +113,7 @@ public class PlayerShoot : MonoBehaviour
         {
             _nextFireTime = Time.time + _fireRate;
 
-            if (_currentAmmo > 0)
+           if (GameState.Ammo > 0)
             {
                 Fire();
             }
@@ -128,7 +126,7 @@ public class PlayerShoot : MonoBehaviour
 
     private void Fire()
     {
-        _currentAmmo--;
+        GameState.Ammo--;
         UpdateAmmoUI();
 
         if (_recoilCoroutine != null)
@@ -140,17 +138,27 @@ public class PlayerShoot : MonoBehaviour
         ShakeCamera();
         ShootRaycast();
     }
-    private void ShootRaycast()
+private void ShootRaycast()
+{
+    Ray ray = new Ray(_cameraTransform.position, _cameraTransform.forward);
+    if (Physics.Raycast(ray, out RaycastHit hitInfo, 100f))
     {
-        Ray ray = new Ray(_cameraTransform.position, _cameraTransform.forward);
-        if (Physics.Raycast(ray, out RaycastHit hitInfo, 100f))
+        if (hitInfo.collider.TryGetComponent<NpcBehaviour>(out var npc))
         {
-            if (hitInfo.collider.TryGetComponent<NpcBehaviour>(out var npc))
-            {
-                npc.TakeDamage();
-            }
+            npc.TakeDamage();
         }
     }
+
+    // Патроны кончились, а цель жива: подозреваемый уходит, день не зависает.
+    if (GameState.Ammo <= 0) StartCoroutine(EscapeIfEmpty());
+}
+
+private IEnumerator EscapeIfEmpty()
+{
+    yield return new WaitForSeconds(2f);
+    var npc = NpcChoiser.Instance.currentNpc;
+    if (npc != null && !npc.isDead) npc.StandUpAndLeave();
+}
 
     private IEnumerator DoRecoil()
     {
@@ -240,7 +248,7 @@ public class PlayerShoot : MonoBehaviour
     {
         if (_ammoText != null)
         {
-            _ammoText.text = $"{_currentAmmo}/{_maxAmmo}";
+           _ammoText.text = $"{GameState.Ammo}/{GameState.MaxAmmo}";
         }
     }
 

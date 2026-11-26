@@ -222,7 +222,7 @@ private void Awake()
     public GameObject FinalChoicePanel;
     public Button replicantButton;
     public Button humanButton;
-
+public Button tapeButton;   // "Прослушать запись" — дубликат humanButton в панели вердикта
     public GameObject statsPanel;
     public TMP_Text finalStatsText;
 
@@ -311,6 +311,12 @@ private void Awake()
         yield return StartCoroutine(TypeLine(verdictLine));
 
         FinalChoicePanel.SetActive(true);
+        if (tapeButton != null)
+{
+    tapeButton.gameObject.SetActive(GameState.TapeLoaded);
+    tapeButton.onClick.RemoveAllListeners();
+    tapeButton.onClick.AddListener(EbalsaGryzno);   // прячет панель и переводит камеру на ПК
+}
         AnswerPanel.SetActive(false);
 
         replicantButton.onClick.RemoveAllListeners();
@@ -324,12 +330,15 @@ private void Awake()
   public bool isFinaleStart = false;
     public void EbalsaGryzno()
     {
+        if (PcScreenSwitcher.Instance != null) PcScreenSwitcher.Instance.RequestVoice();
         FinalChoicePanel.SetActive(false);
         StartCoroutine(tranz.TransitionToTarget());
     }
     void OnFinalChoice(bool isReplicant)
     {
         iScHOICErEPLICANT = isReplicant;
+        GameState.RecordVerdict(isReplicant, NpcChoiser.Instance.currentNpc.IsReplicant);
+if (tapeButton != null) tapeButton.gameObject.SetActive(false);
         FinalChoicePanel.SetActive(false);
         AnswerPanel.SetActive(true);
         DBdata.CurrentSessionResults.Add(new SessionResult
@@ -352,7 +361,7 @@ private void Awake()
             QuestManager.Instance.Init(3);
             Ost.clip = rain;
             Ost.Play();
-            vignette.intensity.value = 0f;
+            if (vignette != null) vignette.intensity.value = 0f;
         }
         IsDone = true;
         isFinaleStart = false;

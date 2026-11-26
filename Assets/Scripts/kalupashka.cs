@@ -156,7 +156,13 @@ public class kalupashka : MaskableGraphic
         return rect.center.y +
             result * rect.height * amplitude;
     }
+public float MatchQuality => matchQuality;
 
+public void SetIdeal(float value)
+{
+    idealFrequency = Mathf.Clamp01(value);
+    if (frequencySlider != null) OnFrequencyChanged(frequencySlider.value);
+}
     private void DrawLine(
         VertexHelper vh,
         Vector2 start,

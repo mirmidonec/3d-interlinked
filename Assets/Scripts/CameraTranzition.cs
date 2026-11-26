@@ -30,7 +30,8 @@ public class CameraTranzition : MonoBehaviour
     void Awake()
     {
         cam = GetComponent<Camera>();
-
+InPC = false;
+InTransition = false;
         if (cam == null)
         {
             Debug.LogError("CameraTranzition: No Camera component found!");
