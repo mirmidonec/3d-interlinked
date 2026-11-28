@@ -75,6 +75,7 @@ public static class GameState
     public static bool VerdictSaidReplicant;
     public static bool VerdictCorrect;
     public static bool SuspectKilled;
+    public static bool SuspectIsReplicant;   // кто сегодня пришёл (ставит NpcChoiser, читает отчёт)
 
     private static DayReport _report;
 
@@ -86,6 +87,7 @@ public static class GameState
         Cassettes = StartCassettes;
         Strikes = 0;
         CorrectCount = 0;
+        NpcChoiser.LastIndex = -1;
         BeginDay();
     }
 
@@ -99,6 +101,7 @@ public static class GameState
         VerdictCorrect = false;
         SuspectKilled = false;
         _report = null;
+        DBdata.Questions.Clear();   // журнал ответов каждого дня начинается с нуля
 
         // Страховка от софтлока: репликанта нельзя застрелить без патрона.
         if (Ammo < 1) Ammo = 1;

@@ -38,7 +38,8 @@ public class IntroText : MonoBehaviour
             _player.enabled = true;
             isIntro = false;
             _ost.SetActive(true);
-            QuestManager.Instance.Init(0);
+            if (GameState.Day > 1) QuestManager.Instance.SkipInspection();   // осмотр комнаты не нужен
+            else QuestManager.Instance.Init(0);
             return;
         }
         isIntro = true;

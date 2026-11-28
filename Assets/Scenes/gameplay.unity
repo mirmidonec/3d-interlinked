@@ -14395,19 +14395,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac7849a81fba4ea4d9e5869f5d630524, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  firstTMP: {fileID: 1649221787}
-  secondTMP: {fileID: 962855575}
-  typingAudioSource: {fileID: 1419508037}
-  typingSound: {fileID: 8300000, guid: b41af0f0003947e4f864f0fddd0467d1, type: 3}
-  firstText: The end
-  secondText: 'The suspect was '
-  typingSpeed: 0.1
-  variableValue: a replicant
   crosshair: {fileID: 1669435216}
   con: {fileID: 783001721}
+  quest: {fileID: 536973024}
   button1: {fileID: 1796330962}
   button2: {fileID: 1500387331}
-  quest: {fileID: 536973024}
 --- !u!1 &1424138653
 GameObject:
   m_ObjectHideFlags: 0
@@ -21869,7 +21861,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   font: {fileID: 11400000, guid: 2f75afadabff8894cb58c69272a4b20b, type: 2}
-  menuSceneIndex: 0
+  accent: {r: 0.25, g: 0.85, b: 1, a: 1}
+  player: {fileID: 0}
   audioSource: {fileID: 0}
   tickSound: {fileID: 0}
   goodSound: {fileID: 0}
@@ -21884,7 +21877,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1649131442}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -1.4795994, y: -0.35424966, z: 0.06493666}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0

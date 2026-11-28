@@ -316,7 +316,8 @@ private void OnPlayerCaught()
             agent.isStopped = true;
             agent.enabled = false;
         }
-        CameraEffectManager.Instance.StartEnd();
+        if (DayUI.Instance != null) DayUI.Instance.FinishDay(1.6f);
+else CameraEffectManager.Instance.StartEnd();
         Destroy(gameObject, 5f);
     }
 }

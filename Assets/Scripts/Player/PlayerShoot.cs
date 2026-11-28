@@ -87,6 +87,7 @@ public int CurrentAmmo => GameState.Ammo;
 
     private void Update()
     {
+        if (Ending.IsEnding) return;
          if (PauseMenu.IsPaused)
         {
             return;
@@ -155,9 +156,10 @@ private void ShootRaycast()
 
 private IEnumerator EscapeIfEmpty()
 {
-    yield return new WaitForSeconds(2f);
+    yield return new WaitForSeconds(1.5f);
     var npc = NpcChoiser.Instance.currentNpc;
-    if (npc != null && !npc.isDead) npc.StandUpAndLeave();
+    if (npc != null && !npc.isDead && DayUI.Instance != null)
+        DayUI.Instance.FinishDay(0f);
 }
 
     private IEnumerator DoRecoil()

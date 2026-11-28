@@ -7,7 +7,7 @@ public class QuestManager : MonoBehaviour
 {
     public static QuestManager Instance;
 
-    [Header("UI")]
+    [Header("UI (старая панель, скрывается если в сцене есть DayUI)")]
     [SerializeField] private TMP_Text _questName;
     [SerializeField] private TMP_Text[] _questSteps;
     [SerializeField] private GameObject _questPanel;
@@ -27,10 +27,43 @@ public class QuestManager : MonoBehaviour
     public int CurrentIndex => _currentQuestIndex;
     private HashSet<int> _completedQuests = new HashSet<int>();
 
+    // ===== Для DayUI: новая панель заданий читает данные отсюда =====
+    private bool IsEnglish => PauseMenu.CurrentLanguage == PauseMenu.Language.English;
+
+    public bool HasActiveQuest => _currentQuest != null;
+
+    public string CurrentQuestTitle =>
+        _currentQuest == null ? "" : (IsEnglish ? _currentQuest.QuestName_EN : _currentQuest.QuestName_RU);
+
+    public string[] CurrentStepTexts =>
+        _currentQuest == null ? new string[0] : (IsEnglish ? _currentQuest.QuestSteps_EN : _currentQuest.QuestSteps_RU);
+
+    public bool[] CurrentStepsDone =>
+        _currentQuest == null ? new bool[0] : _currentQuest.CompletedSteps;
+
+    /// <summary>Со 2-го дня осмотр комнаты не нужен: квест 0 считается пройденным, можно сразу садиться.</summary>
+    public void SkipInspection()
+    {
+        _completedQuests.Add(0);
+    }
+
     private void Awake()
     {
         Instance = this;
         _source = GetComponent<AudioSource>();
+    }
+
+    private void Start()
+    {
+        // Старую панель заменяет новая из DayUI.
+        if (DayUI.Instance != null && _questPanel != null)
+            _questPanel.SetActive(false);
+    }
+
+    private void ShowOldPanel(bool on)
+    {
+        if (_questPanel != null && DayUI.Instance == null)
+            _questPanel.SetActive(on);
     }
 
     public void CompleteStep(int stepIndex)
@@ -38,7 +71,7 @@ public class QuestManager : MonoBehaviour
         if (_currentQuest == null || stepIndex < 0 || stepIndex >= _currentQuest.CompletedSteps.Length) return;
 
         _currentQuest.CompletedSteps[stepIndex] = true;
-        _source.PlayOneShot(CompleteStepSfx);
+        if (_source != null && CompleteStepSfx != null) _source.PlayOneShot(CompleteStepSfx);
         UpdateUI();
         IsQuestCompleted(_currentQuestIndex);
     }
@@ -52,16 +85,16 @@ public class QuestManager : MonoBehaviour
         }
         _currentQuest = _quest[questIndex];
         _currentQuestIndex = questIndex;
-        _source.PlayOneShot(TakenQuestSfx);
+        if (_source != null && TakenQuestSfx != null) _source.PlayOneShot(TakenQuestSfx);
         UpdateUI();
-        _questPanel.SetActive(true);
+        ShowOldPanel(true);
     }
 
     public void UpdateUI()
     {
-        if (_currentQuest == null) return;
+        if (_currentQuest == null || _questName == null || _questSteps == null) return;
 
-        bool isEnglish = PauseMenu.CurrentLanguage == PauseMenu.Language.English;
+        bool isEnglish = IsEnglish;
 
         _questName.text = isEnglish ? _currentQuest.QuestName_EN : _currentQuest.QuestName_RU;
 
@@ -100,7 +133,7 @@ public class QuestManager : MonoBehaviour
     {
         _completedQuests.Add(_currentQuestIndex);
         _currentQuest = null;
-        _questPanel.SetActive(false);
+        ShowOldPanel(false);
     }
     public bool IsQuestCompletedBefore(int questIndex)
     {

@@ -32,6 +32,13 @@ public class Connection : MonoBehaviour
     private void Start()
     {
         CreateDB();
+        if (!string.IsNullOrEmpty(currentUser))
+{
+    // Уже входил в этом забеге: регистрацию пропускаем, сразу журнал.
+    panel.SetActive(false);
+    canvas.GetComponent<GraphicRaycaster>().enabled = false;
+    logdialog.SetActive(true);
+}
     }
 
     void OnApplicationQuit()

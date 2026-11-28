@@ -73,10 +73,31 @@ public class DialogueSystem : MonoBehaviour
         smoothChangeCoroutine = StartCoroutine(SmoothChange(newPulse, newPupil));
     }
 
+public InterrogationUI ui;
+
 private void Awake()
-    {
-        instance = this;
-    }
+{
+    instance = this;
+    ui = GetComponent<InterrogationUI>();
+    if (ui == null) ui = gameObject.AddComponent<InterrogationUI>();
+    ui.Bind(this);
+}
+void SetButtonLabel(Button b, string text)
+{
+    var tmp = b.GetComponentInChildren<TMP_Text>(true);
+    if (tmp != null) { tmp.text = text; return; }
+    var legacy = b.GetComponentInChildren<Text>(true);
+    if (legacy != null) legacy.text = text;
+}
+
+const int SpeakerDetective = 0;
+const int SpeakerSuspect = 1;
+
+// В новом UI имя говорящего показывается отдельной плашкой, поэтому префикс "Детектив:" не нужен.
+string Line(string label, string text)
+{
+    return ui != null ? text : $"{label}: {text}";
+}
     IEnumerator SmoothChange(float targetPulse, float targetPupil)
     {
         float duration = 1f;
@@ -242,14 +263,14 @@ public Button tapeButton;   // "Прослушать запись" — дубл�
         AnswerPanel.SetActive(false);
         QuestionPanel.SetActive(true);
 
-        for (int i = 0; i < questionButtons.Length; i++)
-        {
-            int index = i;
-            var q = iteration.questions[i];
-            questionButtons[i].GetComponentInChildren<Text>().text = "[" + (i + 1) + "] " + q.questionText;
-            questionButtons[i].onClick.RemoveAllListeners();
-            questionButtons[i].onClick.AddListener(() => OnQuestionChosen(q));
-        }
+       for (int i = 0; i < questionButtons.Length; i++)
+{
+    int index = i;
+    var q = iteration.questions[i];
+    SetButtonLabel(questionButtons[i], ui != null ? q.questionText : "[" + (i + 1) + "] " + q.questionText);
+    questionButtons[i].onClick.RemoveAllListeners();
+    questionButtons[i].onClick.AddListener(() => OnQuestionChosen(q));
+}
     }
 
     public PostProcessVolume volume;
@@ -366,6 +387,8 @@ if (tapeButton != null) tapeButton.gameObject.SetActive(false);
         IsDone = true;
         isFinaleStart = false;
         NpcChoiser.Instance.currentNpc.CloseDialogue();
+        // Вердикт "человек": день закончен, отчёт сразу, не дожидаясь пока NPC уйдёт.
+if (!isReplicant && DayUI.Instance != null) DayUI.Instance.FinishDay(1.2f);
     }
     private float currentDelay = 0f;
     void OnQuestionChosen(QuestionData question)
@@ -376,69 +399,76 @@ if (tapeButton != null) tapeButton.gameObject.SetActive(false);
         StartCoroutine(DisplayFullDialogue(question));
         source.PlayOneShot(buttonChooseSound);
     }
-    IEnumerator WaitForClick()
-    {
-        isWaitingForClick = true;
-
-        yield return new WaitForEndOfFrame();
-        yield return new WaitUntil(() => !isWaitingForClick);
-    }
-
-    IEnumerator DisplayFullDialogue(QuestionData question)
-    {
-        dialogueText.text = "";
-
-        UpdateStatsUI();
-
-        AnswerPanel.SetActive(true);
-        QuestionPanel.SetActive(false);
-
-        string detectiveLabel = PauseMenu.CurrentLanguage == PauseMenu.Language.English ? "Detective" : "Детектив";
-        string suspectLabel = PauseMenu.CurrentLanguage == PauseMenu.Language.English ? "Suspect" : "Подозреваемый";
-
-        yield return TypeLine($"{detectiveLabel}: {question.questionText}");
-        if (DialogueLog.Instance != null)
+ IEnumerator WaitForClick()
 {
-    DialogueLog.Instance.AddDetectiveMessage(question.questionText);
-}
-        DBdata.Questions.Add(question); // добавили в БД!
+    isWaitingForClick = true;
+    if (ui != null) ui.SetWaiting(true);
 
-        float delay = question.answer.effect.delayChange;
-        float elapsed = 0f;
-        int dotCount = 0;
+    yield return new WaitForEndOfFrame();
+    yield return new WaitUntil(() => !isWaitingForClick);
 
-        while (elapsed < delay)
-        {
-            typingSpeed = 0.5f;
-            dialogueText.text = $"{suspectLabel}: {new string('.', (dotCount % 3) + 1)}";
-            dotCount++;
-            elapsed += typingSpeed;
-
-            yield return new WaitForSeconds(typingSpeed);
-        }
-
-        typingSpeed = 0.04f;
-        currentDelay = delay;
-        ApplyEffect(question.answer.effect);
-        UpdateStatsUI();
-
-        yield return TypeLine($"{suspectLabel}: {question.answer.answerText}");
-        if (DialogueLog.Instance != null)
-{
-    DialogueLog.Instance.AddSuspectMessage(question.answer.answerText);
+    if (ui != null) ui.SetWaiting(false);
 }
 
-        pulseHistory.Add(pulse);
-        pupilHistory.Add(pupilDilation);
-        delayHistory.Add(currentDelay);
+ IEnumerator DisplayFullDialogue(QuestionData question)
+{
+    dialogueText.text = "";
 
-        currentIteration++;
+    UpdateStatsUI();
 
-        foreach (var button in questionButtons)
-            button.interactable = true;
+    AnswerPanel.SetActive(true);
+    QuestionPanel.SetActive(false);
 
-        ShowIteration();
+    string detectiveLabel = PauseMenu.CurrentLanguage == PauseMenu.Language.English ? "Detective" : "Детектив";
+    string suspectLabel = PauseMenu.CurrentLanguage == PauseMenu.Language.English ? "Suspect" : "Подозреваемый";
+
+    yield return TypeLine(Line(detectiveLabel, question.questionText), SpeakerDetective);
+    if (DialogueLog.Instance != null)
+    {
+        DialogueLog.Instance.AddDetectiveMessage(question.questionText);
     }
+    DBdata.Questions.Add(question); // добавили в БД!
+
+    float delay = question.answer.effect.delayChange;
+    float elapsed = 0f;
+    int dotCount = 0;
+
+    if (ui != null) ui.SetSpeaker(SpeakerSuspect);
+    while (elapsed < delay)
+    {
+        typingSpeed = 0.5f;
+        dialogueText.text = Line(suspectLabel, new string('.', (dotCount % 3) + 1));
+        dotCount++;
+        elapsed += typingSpeed;
+
+        // Шкала задержки растёт в реальном времени, пока подозреваемый молчит.
+        if (ui != null) ui.SetStats(pulse, pupilDilation, Mathf.Min(elapsed, delay));
+
+        yield return new WaitForSeconds(typingSpeed);
+    }
+
+    typingSpeed = 0.04f;
+    currentDelay = delay;
+    ApplyEffect(question.answer.effect);
+    UpdateStatsUI();
+
+    yield return TypeLine(Line(suspectLabel, question.answer.answerText), SpeakerSuspect);
+    if (DialogueLog.Instance != null)
+    {
+        DialogueLog.Instance.AddSuspectMessage(question.answer.answerText);
+    }
+
+    pulseHistory.Add(pulse);
+    pupilHistory.Add(pupilDilation);
+    delayHistory.Add(currentDelay);
+
+    currentIteration++;
+
+    foreach (var button in questionButtons)
+        button.interactable = true;
+
+    ShowIteration();
+}
     void ShowFinalSummary()
     {
         float avgPulse = pulseHistory.Count > 0 ? pulseHistory.Average() : 0f;
@@ -449,7 +479,11 @@ if (tapeButton != null) tapeButton.gameObject.SetActive(false);
 
         float avgDelay = delayHistory.Count > 0 ? delayHistory.Average() : 0f;
         float maxDelay = delayHistory.Count > 0 ? delayHistory.Max() : 0f;
-
+if (ui != null)
+{
+    ui.SetSummary(avgPulse, maxPulse, avgPupil, maxPupil, avgDelay, maxDelay);
+    return;
+}
         string summary;
 
         if (PauseMenu.CurrentLanguage == PauseMenu.Language.English)
@@ -476,8 +510,9 @@ if (tapeButton != null) tapeButton.gameObject.SetActive(false);
         finalStatsText.text = summary;
     }
 
-    IEnumerator TypeLine(string fullText)
-    {
+   IEnumerator TypeLine(string fullText, int speaker = -1)
+{
+    if (ui != null) ui.SetSpeaker(speaker);
         isTyping = true;
         dialogueText.text = "";
 
@@ -1079,6 +1114,11 @@ if (tapeButton != null) tapeButton.gameObject.SetActive(false);
 
     void UpdateStatsUI()
     {
+         if (ui != null)
+    {
+        ui.SetStats(pulse, pupilDilation, currentDelay);
+        return;
+    }
         if (PauseMenu.CurrentLanguage == PauseMenu.Language.English)
         {
             pulseText.text = $"Pulse {(int)pulse} BPM";

@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 using TMPro;
 using UnityEngine;
@@ -9,6 +10,9 @@ using UnityEngine.UI;
 /// <summary>
 /// Вся UI системы дней. Строится кодом в Awake, руками собирать ничего не нужно.
 /// Повесь на пустой объект "DayUI" в игровой сцене и назначь шрифт с кириллицей.
+///
+/// Конец дня запускается ОТСЮДА: FinishDay(задержка). Его вызывают вердикт "человек",
+/// выстрел, нехватка патронов. Цепочка "NPC уходит / The end / затухание" больше не нужна.
 /// </summary>
 public class DayUI : MonoBehaviour
 {
@@ -17,9 +21,10 @@ public class DayUI : MonoBehaviour
     [Header("Look")]
     [Tooltip("Тот же TMP-шрифт, что и в остальной игре (должен содержать кириллицу)")]
     [SerializeField] private TMP_FontAsset font;
+    [SerializeField] private Color accent = new Color(0.25f, 0.85f, 1f);
 
-    [Header("Scenes")]
-    [SerializeField] private int menuSceneIndex = 0;
+    [Header("References (найдутся сами, если пусто)")]
+    [SerializeField] private PlayerController player;
 
     [Header("Audio (необязательно)")]
     [SerializeField] private AudioSource audioSource;
@@ -29,19 +34,78 @@ public class DayUI : MonoBehaviour
     [SerializeField] private AudioClip buySound;
     [SerializeField] private AudioClip denySound;
 
-    private Canvas _canvas;
+    public TMP_FontAsset Font => font;
 
-    private CanvasGroup _hudGroup, _cardGroup, _toastGroup, _reportGroup, _shopGroup, _endGroup, _fadeGroup;
-    private TMP_Text _hudText, _cardText, _toastText;
-    private TMP_Text _reportTitle, _reportLines;
+    private const string Green = "#7CFC9A";
+    private const string Red = "#FF6B6B";
+    private const string Amber = "#FFC857";
+    private const string Dim = "#7F8A96";
+
+    private static readonly Color GreenC = new Color(0.49f, 0.99f, 0.60f);
+    private static readonly Color RedC = new Color(1f, 0.42f, 0.42f);
+    private static readonly Color AmberC = new Color(1f, 0.78f, 0.34f);
+    private static readonly Color PanelBg = new Color(0.03f, 0.05f, 0.08f, 0.82f);
+    private static readonly Color RowBg = new Color(0.08f, 0.11f, 0.15f, 0.95f);
+    private static readonly Color TextMain = new Color(0.90f, 0.93f, 0.96f);
+    private static readonly Color TextDim = new Color(0.55f, 0.60f, 0.67f);
+    private static readonly Color Overlay = new Color(0.02f, 0.03f, 0.05f, 0.97f);
+    private static readonly Color PipOff = new Color(1f, 1f, 1f, 0.12f);
+
+    private Canvas _canvas;
+    private CanvasGroup _hudGroup, _cardGroup, _toastGroup, _reportGroup, _shopGroup, _endGroup, _fadeGroup, _flashGroup;
+    private RectTransform _hudRoot, _cardLine;
+    private TMP_Text _hudTitle, _hudMoney;
+    private StatRow _ammoRow, _tapeRow, _strikeRow;
+    private RectTransform _questPanel;
+    private CanvasGroup _questGroup;
+    private TMP_Text _questHeader, _questName;
+    private Image _questStrip;
+    private TMP_Text _cardText, _toastText;
+    private TMP_Text _reportSub, _reportTitle;
+    private RectTransform _reportRows;
     private Button _reportButton;
-    private TMP_Text _shopMoney, _shopInfo;
-    private Button _shopAmmoBtn, _shopTapeBtn, _shopNextBtn;
+    private TMP_Text _shopMoney, _shopNotice, _shopInfo;
+    private ShopRow _shopAmmo, _shopTape;
+    private Button _shopNextBtn;
+    private CanvasGroup _shopTitleGroup, _shopNextGroup;
     private TMP_Text _endTitle, _endBody;
     private Button _endButton;
 
+    private class StatRow
+    {
+        public TMP_Text label, value;
+        public Image[] pips;
+    }
+
+    private class ShopRow
+    {
+        public CanvasGroup group;
+        public TMP_Text name, owned;
+        public Button buy;
+    }
+
+    private class QRow
+    {
+        public RectTransform root;
+        public Image box, tick;
+        public TMP_Text label;
+        public bool done;
+        public float k;
+    }
+
+    private const int MaxQuestRows = 6;
+    private readonly List<QRow> _qRows = new List<QRow>();
+    private readonly List<string> _vTexts = new List<string>();
+    private readonly List<bool> _vDone = new List<bool>();
+    private string _questKey = "";
+
     private bool _locked;       // true после конца дня: HUD скрыт, UI дня занят
-    private string _lastHud;
+    private bool _finishing;
+    private bool _shopOpen;
+    private int _shopSig = -1;
+    private float _noticeTimer;
+    private float _shownMoney = -1f;
+    private int _lastMoney = -1, _lastAmmo = -1, _lastTapes = -1, _lastStrikes = -1;
 
     // ====================================================================
     // Жизненный цикл
@@ -72,20 +136,37 @@ public class DayUI : MonoBehaviour
 
     private void Start()
     {
+        if (player == null) player = FindObjectOfType<PlayerController>();
+
         GameState.BeginDay();
         StartCoroutine(DayStartRoutine());
     }
 
     private void Update()
     {
-        bool show = !_locked && !IntroText.isIntro && !Ending.IsEnding && !CameraTranzition.InPC;
-        _hudGroup.alpha = show ? 1f : 0f;
+        float dt = Time.unscaledDeltaTime;
 
-        string hud = BuildHudString();
-        if (hud != _lastHud)
+        bool dialogue = player != null && player.IsDialogue;
+        bool show = !_locked && !IntroText.isIntro && !Ending.IsEnding && !CameraTranzition.InPC && !dialogue;
+        _hudGroup.alpha = Mathf.MoveTowards(_hudGroup.alpha, show ? 1f : 0f, dt * 4f);
+        _hudRoot.anchoredPosition = new Vector2(Mathf.Lerp(0f, 40f, UiFx.EaseOutCubic(_hudGroup.alpha)), -40f);
+
+        UpdateHud(dt);
+        UpdateQuest(dt);
+
+        // Магазин сам подхватывает любые изменения счётчиков.
+        if (_shopOpen)
         {
-            _lastHud = hud;
-            _hudText.text = hud;
+            if (ShopSignature() != _shopSig) RefreshShop();
+            float target = GameState.Money;
+            _shownMoney = Mathf.MoveTowards(_shownMoney, target, Mathf.Max(80f, Mathf.Abs(target - _shownMoney) * 5f) * dt);
+            SetText(_shopMoney, $"{Loc.T("Balance", "Баланс")}   <color={Green}>${Mathf.RoundToInt(_shownMoney)}</color>");
+        }
+
+        if (_noticeTimer > 0f)
+        {
+            _noticeTimer -= dt;
+            if (_noticeTimer <= 0f) _shopNotice.text = "";
         }
     }
 
@@ -93,11 +174,44 @@ public class DayUI : MonoBehaviour
     // Публичное API
     // ====================================================================
 
-    /// <summary>Вызывается из Ending после текста "Подозреваемый был ...".</summary>
+    /// <summary>
+    /// Закончить день: через delay секунд открывается отчёт. Безопасно вызывать несколько раз.
+    /// Вызывают: вердикт "человек", смерть подозреваемого, кончились патроны, Ending.StartEnd.
+    /// </summary>
+    public void FinishDay(float delay = 0f)
+    {
+        if (_finishing) return;
+        _finishing = true;
+        Ending.IsEnding = true;   // блокирует паузу и HUD до перезагрузки сцены
+        StartCoroutine(FinishRoutine(delay));
+    }
+
+    private IEnumerator FinishRoutine(float delay)
+    {
+        try
+        {
+            Connection con = FindObjectOfType<Connection>();
+            if (con != null) con.SaveProgress();
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError("[DayUI] SaveProgress failed: " + e);
+        }
+
+        Cursor.lockState = CursorLockMode.Confined;
+        Cursor.visible = true;
+
+        yield return new WaitForSecondsRealtime(delay);
+        ShowDayEnd();
+    }
+
     public void ShowDayEnd()
     {
         if (_locked) return;
         _locked = true;
+        _finishing = true;
+        Ending.IsEnding = true;
+        Debug.Log("[DayUI] Показываю отчёт дня");
         StartCoroutine(ReportRoutine());
     }
 
@@ -117,10 +231,21 @@ public class DayUI : MonoBehaviour
 
         if (GameState.Day > 1)
         {
-            _cardText.text = $"{title}\n<size=45%>{sub}</size>";
+            _cardText.text = $"{title}\n<size=42%><color={Dim}>{sub}</color></size>";
             SetGroup(_cardGroup, true);
-            yield return new WaitForSecondsRealtime(2.2f);
-            yield return Fade(_cardGroup, 1f, 0f, 0.8f);
+            _cardLine.sizeDelta = new Vector2(0f, 3f);
+
+            float t = 0f;
+            while (t < 0.7f)
+            {
+                t += Time.unscaledDeltaTime;
+                float k = Mathf.Clamp01(t / 0.7f);
+                _cardText.transform.localScale = Vector3.one * Mathf.LerpUnclamped(1.25f, 1f, UiFx.EaseOutCubic(k));
+                _cardLine.sizeDelta = new Vector2(Mathf.Lerp(0f, 560f, UiFx.EaseOutCubic(k)), 3f);
+                yield return null;
+            }
+            yield return new WaitForSecondsRealtime(1.3f);
+            yield return Fade(_cardGroup, 1f, 0f, 0.7f);
             SetGroup(_cardGroup, false);
         }
         else
@@ -136,7 +261,21 @@ public class DayUI : MonoBehaviour
     private IEnumerator ToastRoutine(string text, float time)
     {
         _toastText.text = text;
-        yield return Fade(_toastGroup, 0f, 1f, 0.4f);
+        RectTransform rt = (RectTransform)_toastGroup.transform;
+        Vector2 basePos = new Vector2(0f, -110f);
+
+        float t = 0f;
+        while (t < 0.45f)
+        {
+            t += Time.unscaledDeltaTime;
+            float k = UiFx.EaseOutCubic(t / 0.45f);
+            _toastGroup.alpha = k;
+            rt.anchoredPosition = basePos + new Vector2(0f, Mathf.Lerp(40f, 0f, k));
+            yield return null;
+        }
+        _toastGroup.alpha = 1f;
+        rt.anchoredPosition = basePos;
+
         yield return new WaitForSecondsRealtime(time);
         yield return Fade(_toastGroup, 1f, 0f, 0.6f);
     }
@@ -152,48 +291,75 @@ public class DayUI : MonoBehaviour
         Cursor.lockState = CursorLockMode.Confined;
         Cursor.visible = true;
 
+        for (int i = _reportRows.childCount - 1; i >= 0; i--)
+            Destroy(_reportRows.GetChild(i).gameObject);
+
+        _reportSub.text = "";
         _reportTitle.text = "";
-        _reportLines.text = "";
         _reportButton.gameObject.SetActive(false);
 
         SetGroup(_reportGroup, true);
         _reportGroup.alpha = 0f;
-        yield return Fade(_reportGroup, 0f, 1f, 0.6f);
+        yield return Fade(_reportGroup, 0f, 1f, 0.35f);
 
-        if (!GameState.VerdictMade)
-            _reportTitle.text = $"<color=#FF6B6B>{Loc.T("NO VERDICT", "ВЕРДИКТ НЕ ВЫНЕСЕН")}</color>";
-        else if (r.Correct)
-            _reportTitle.text = $"<color=#7CFC9A>{Loc.T("VERDICT CONFIRMED", "ВЕРДИКТ ВЕРЕН")}</color>";
-        else
-            _reportTitle.text = $"<color=#FF6B6B>{Loc.T("VERDICT WRONG", "ВЕРДИКТ ОШИБОЧЕН")}</color>";
-
-        Play(r.Correct ? goodSound : badSound);
+        // 1. Кто был подозреваемым
+        string who = GameState.SuspectIsReplicant ? Loc.T("REPLICANT", "РЕПЛИКАНТ") : Loc.T("HUMAN", "ЧЕЛОВЕК");
+        string whoCol = GameState.SuspectIsReplicant ? Red : Green;
+        _reportSub.text = $"{Loc.T("The suspect was", "Подозреваемый")}: <color={whoCol}>{who}</color>";
+        StartCoroutine(UiFx.Punch(_reportSub.transform, 0.12f, 0.4f));
         yield return new WaitForSecondsRealtime(0.9f);
 
-        var sb = new StringBuilder();
+        // 2. Верно ли
+        if (!GameState.VerdictMade)
+            _reportTitle.text = $"<color={Red}>{Loc.T("NO VERDICT", "ВЕРДИКТ НЕ ВЫНЕСЕН")}</color>";
+        else if (r.Correct)
+            _reportTitle.text = $"<color={Green}>{Loc.T("VERDICT CONFIRMED", "ВЕРДИКТ ВЕРЕН")}</color>";
+        else
+            _reportTitle.text = $"<color={Red}>{Loc.T("VERDICT WRONG", "ВЕРДИКТ ОШИБОЧЕН")}</color>";
+
+        StartCoroutine(UiFx.Punch(_reportTitle.transform, 0.22f, 0.5f));
+        StartCoroutine(FlashRoutine(r.Correct ? GreenC : RedC, 0.28f));
+        if (!r.Correct) StartCoroutine(UiFx.Shake((RectTransform)_reportTitle.transform.parent, 14f, 0.45f));
+        Play(r.Correct ? goodSound : badSound);
+        yield return new WaitForSecondsRealtime(0.8f);
+
+        // 3. Деньги построчно
         foreach (ReportLine line in r.Lines)
         {
-            sb.AppendLine(FormatLine(line));
-            _reportLines.text = sb.ToString();
+            string col = line.Amount >= 0 ? Green : Red;
+            string sign = line.Amount >= 0 ? "+" : "-";
+            AddRow(line.Label, $"<color={col}>{sign}${Mathf.Abs(line.Amount)}</color>");
             Play(tickSound);
-            yield return new WaitForSecondsRealtime(0.5f);
+            yield return new WaitForSecondsRealtime(0.38f);
         }
 
-        sb.AppendLine();
-        sb.AppendLine($"{Loc.T("Balance", "Баланс")}<pos=56%>${r.MoneyBefore}  >  <color=#FFFFFF>${r.MoneyAfter}</color>");
-        _reportLines.text = sb.ToString();
-        yield return new WaitForSecondsRealtime(0.5f);
+        // 4. Баланс со счётчиком
+        TMP_Text balanceValue;
+        AddRow(Loc.T("Balance", "Баланс"), $"${r.MoneyBefore}", out balanceValue);
+        yield return new WaitForSecondsRealtime(0.35f);
+        float t = 0f;
+        while (t < 0.9f)
+        {
+            t += Time.unscaledDeltaTime;
+            int cur = Mathf.RoundToInt(Mathf.Lerp(r.MoneyBefore, r.MoneyAfter, UiFx.EaseOutCubic(t / 0.9f)));
+            balanceValue.text = $"${r.MoneyBefore}  >  <color=#FFFFFF>${cur}</color>";
+            yield return null;
+        }
+        balanceValue.text = $"${r.MoneyBefore}  >  <color=#FFFFFF>${r.MoneyAfter}</color>";
+        StartCoroutine(UiFx.Punch(balanceValue.transform, 0.12f, 0.35f));
+        yield return new WaitForSecondsRealtime(0.4f);
 
-        string strikeCol = GameState.Strikes >= GameState.MaxStrikes - 1 ? "#FF6B6B" : "#FFFFFF";
-        sb.AppendLine($"{Loc.T("Mistakes", "Ошибки")}<pos=72%><color={strikeCol}>{GameState.Strikes}/{GameState.MaxStrikes}</color>");
-        _reportLines.text = sb.ToString();
+        // 5. Ошибки
+        var strikes = new StringBuilder();
+        for (int i = 0; i < GameState.MaxStrikes; i++)
+            strikes.Append(i < GameState.Strikes ? $"<color={Red}>X</color> " : $"<color={Dim}>-</color> ");
+        AddRow(Loc.T("Mistakes", "Ошибки"), strikes.ToString().TrimEnd());
+        Play(tickSound);
         yield return new WaitForSecondsRealtime(0.5f);
 
         if (r.GameOver)
         {
-            sb.AppendLine();
-            sb.AppendLine($"<color=#FF6B6B>{Loc.T("The department is closing your case.", "Отдел закрывает ваше дело.")}</color>");
-            _reportLines.text = sb.ToString();
+            AddRow($"<color={Red}>{Loc.T("The department is closing your case.", "Отдел закрывает ваше дело.")}</color>", "");
             yield return new WaitForSecondsRealtime(0.5f);
         }
 
@@ -201,13 +367,59 @@ public class DayUI : MonoBehaviour
             ? Loc.T("Continue", "Далее")
             : Loc.T("To the shop", "В магазин"));
         _reportButton.gameObject.SetActive(true);
+        CanvasGroup bg = _reportButton.GetComponent<CanvasGroup>();
+        if (bg != null) StartCoroutine(UiFx.Appear(bg, 0f, 0.35f));
     }
 
-    private string FormatLine(ReportLine l)
+    private CanvasGroup AddRow(string left, string right)
     {
-        string col = l.Amount >= 0 ? "#7CFC9A" : "#FF6B6B";
-        string sign = l.Amount >= 0 ? "+" : "-";
-        return $"{l.Label}<pos=72%><color={col}>{sign}${Mathf.Abs(l.Amount)}</color>";
+        TMP_Text unused;
+        return AddRow(left, right, out unused);
+    }
+
+    private CanvasGroup AddRow(string left, string right, out TMP_Text rightText)
+    {
+        RectTransform row = NewRect("Row", _reportRows);
+        var bg = row.gameObject.AddComponent<Image>();
+        bg.sprite = UiFx.Rounded(10);
+        bg.type = Image.Type.Sliced;
+        bg.color = new Color(1f, 1f, 1f, 0.05f);
+        bg.raycastTarget = false;
+
+        var h = row.gameObject.AddComponent<HorizontalLayoutGroup>();
+        h.padding = new RectOffset(22, 22, 6, 6);
+        h.spacing = 16f;
+        h.childAlignment = TextAnchor.MiddleLeft;
+        h.childControlWidth = true;
+        h.childControlHeight = true;
+        h.childForceExpandWidth = false;
+        h.childForceExpandHeight = true;
+        UiFx.Layout(row.gameObject, minH: 52f, prefH: 52f);
+
+        TMP_Text l = MakeText(row, "Label", 32, TextAlignmentOptions.MidlineLeft, TextMain);
+        l.text = left;
+        UiFx.Layout(l.gameObject, flexW: 1f);
+
+        rightText = MakeText(row, "Value", 32, TextAlignmentOptions.MidlineRight, Color.white);
+        rightText.text = right;
+        UiFx.Layout(rightText.gameObject, minW: 340f, prefW: 340f);
+
+        var cg = row.gameObject.AddComponent<CanvasGroup>();
+        StartCoroutine(UiFx.Appear(cg, 0f, 0.28f));
+        return cg;
+    }
+
+    private IEnumerator FlashRoutine(Color c, float peak)
+    {
+        _flashGroup.GetComponent<Image>().color = c;
+        float t = 0f;
+        while (t < 0.55f)
+        {
+            t += Time.unscaledDeltaTime;
+            _flashGroup.alpha = peak * (1f - UiFx.EaseOutCubic(t / 0.55f));
+            yield return null;
+        }
+        _flashGroup.alpha = 0f;
     }
 
     private void OnReportContinue()
@@ -224,37 +436,82 @@ public class DayUI : MonoBehaviour
     // Магазин
     // ====================================================================
 
+    private int ShopSignature()
+    {
+        return GameState.Money * 10000 + GameState.Ammo * 100 + GameState.Cassettes + GameState.Day * 7919;
+    }
+
     private void OpenShop()
     {
+        _shopOpen = true;
+        _shownMoney = GameState.Money;
         SetGroup(_shopGroup, true);
+        _shopNotice.text = "";
         RefreshShop();
+
+        StartCoroutine(UiFx.Appear(_shopTitleGroup, 0.00f, 0.4f));
+        StartCoroutine(UiFx.Appear(_shopAmmo.group, 0.12f, 0.4f));
+        StartCoroutine(UiFx.Appear(_shopTape.group, 0.24f, 0.4f));
+        StartCoroutine(UiFx.Appear(_shopNextGroup, 0.36f, 0.4f));
     }
 
     private void RefreshShop()
     {
-        _shopMoney.text = $"{Loc.T("Balance", "Баланс")}: <color=#7CFC9A>${GameState.Money}</color>";
+        _shopSig = ShopSignature();
 
-        SetLabel(_shopAmmoBtn,
-            $"{Loc.T("Buy a bullet", "Купить патрон")}   -${GameState.AmmoPrice}    [{GameState.Ammo}/{GameState.MaxAmmo}]");
-        _shopAmmoBtn.interactable = GameState.CanBuyAmmo;
+        SetText(_shopAmmo.name,
+            $"{Loc.T("Bullet", "Патрон")}\n<size=60%><color={Dim}>{Loc.T("For the service revolver", "Для служебного револьвера")}</color></size>");
+        SetText(_shopAmmo.owned, $"{GameState.Ammo} / {GameState.MaxAmmo}");
+        SetBuyLabel(_shopAmmo.buy, GameState.AmmoPrice, GameState.CanBuyAmmo);
 
-        SetLabel(_shopTapeBtn,
-            $"{Loc.T("Buy a cassette", "Купить кассету")}   -${GameState.CassettePrice}    [{GameState.Cassettes}/{GameState.MaxCassettes}]");
-        _shopTapeBtn.interactable = GameState.CanBuyCassette;
+        SetText(_shopTape.name,
+            $"{Loc.T("Cassette", "Кассета")}\n<size=60%><color={Dim}>{Loc.T("Records the interrogation, unlocks voice analysis", "Запись допроса и анализ голоса")}</color></size>");
+        SetText(_shopTape.owned, $"{GameState.Cassettes} / {GameState.MaxCassettes}");
+        SetBuyLabel(_shopTape.buy, GameState.CassettePrice, GameState.CanBuyCassette);
 
         SetLabel(_shopNextBtn,
-            $"{Loc.T("Next day", "Следующий день")} ({GameState.Day + 1}/{GameState.TotalDays})");
+            $"{Loc.T("Next day", "Следующий день")}  ({GameState.Day + 1}/{GameState.TotalDays})");
+    }
+
+    private void SetBuyLabel(Button b, int price, bool can)
+    {
+        string text = $"{Loc.T("BUY", "КУПИТЬ")}   ${price}";
+        SetLabel(b, can ? text : $"<color={Dim}>{text}</color>");
     }
 
     private void Buy(bool ammo)
     {
         bool ok = ammo ? GameState.TryBuyAmmo() : GameState.TryBuyCassette();
         Play(ok ? buySound : denySound);
+
+        ShopRow row = ammo ? _shopAmmo : _shopTape;
+        if (ok)
+        {
+            Notice(ammo ? Loc.T("+1 bullet", "+1 патрон") : Loc.T("+1 cassette", "+1 кассета"), Green);
+            StartCoroutine(UiFx.Punch(row.owned.transform, 0.25f, 0.3f));
+        }
+        else
+        {
+            bool full = ammo ? GameState.Ammo >= GameState.MaxAmmo : GameState.Cassettes >= GameState.MaxCassettes;
+            Notice(full ? Loc.T("You can't carry more", "Больше не поместится")
+                        : Loc.T("Not enough money", "Не хватает денег"), Red);
+            StartCoroutine(UiFx.Shake((RectTransform)row.group.transform, 8f, 0.3f));
+        }
+
         RefreshShop();
+        Debug.Log($"[Shop] ok={ok} money={GameState.Money} ammo={GameState.Ammo} tapes={GameState.Cassettes}");
+    }
+
+    private void Notice(string text, string color)
+    {
+        _shopNotice.text = $"<color={color}>{text}</color>";
+        _noticeTimer = 1.8f;
+        StartCoroutine(UiFx.Punch(_shopNotice.transform, 0.12f, 0.25f));
     }
 
     private void OnNextDay()
     {
+        _shopNextBtn.interactable = false;
         StartCoroutine(NextDayRoutine());
     }
 
@@ -274,11 +531,15 @@ public class DayUI : MonoBehaviour
 
     private void ShowEnd(bool victory, DayReport r)
     {
+        _shopOpen = false;
         SetGroup(_endGroup, true);
+        StartCoroutine(UiFx.Appear(_endGroup, 0f, 0.5f));
+        StartCoroutine(FlashRoutine(victory ? GreenC : RedC, 0.3f));
 
         _endTitle.text = victory
-            ? $"<color=#7CFC9A>{Loc.T("CASE CLOSED", "ДЕЛО ЗАКРЫТО")}</color>"
-            : $"<color=#FF6B6B>{Loc.T("YOU ARE FIRED", "ВЫ УВОЛЕНЫ")}</color>";
+            ? $"<color={Green}>{Loc.T("CASE CLOSED", "ДЕЛО ЗАКРЫТО")}</color>"
+            : $"<color={Red}>{Loc.T("YOU ARE FIRED", "ВЫ УВОЛЕНЫ")}</color>";
+        StartCoroutine(UiFx.Punch(_endTitle.transform, 0.2f, 0.6f));
 
         string reason = "";
         if (!victory)
@@ -294,47 +555,190 @@ public class DayUI : MonoBehaviour
             $"{Loc.T("Correct verdicts", "Верных вердиктов")}: {GameState.CorrectCount}/{GameState.Day}\n" +
             $"{Loc.T("Final balance", "Итоговый баланс")}: ${GameState.Money}";
 
-        SetLabel(_endButton, Loc.T("Main menu", "В главное меню"));
+        SetLabel(_endButton, Loc.T("Exit", "Выход"));
     }
 
     private void OnEndButton()
     {
-        StartCoroutine(ToMenuRoutine());
-    }
-
-    private IEnumerator ToMenuRoutine()
-    {
-        SetGroup(_fadeGroup, true);
-        _fadeGroup.alpha = 0f;
-        yield return Fade(_fadeGroup, 0f, 1f, 0.8f);
-
-        GameState.ResetRun();
-        SceneManager.LoadScene(menuSceneIndex);
+        Application.Quit();
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#endif
     }
 
     // ====================================================================
     // HUD
     // ====================================================================
 
-    private string BuildHudString()
+    private void UpdateHud(float dt)
     {
-        string ammoCol = GameState.Ammo <= 0 ? "#FF6B6B" : "#FFFFFF";
+        SetText(_hudTitle, $"{Loc.T("DAY", "ДЕНЬ")} {GameState.Day} / {GameState.TotalDays}");
 
-        var strikes = new StringBuilder();
-        for (int i = 0; i < GameState.MaxStrikes; i++)
-            strikes.Append(i < GameState.Strikes ? "<color=#FF6B6B>X</color>" : "<color=#667788>-</color>");
+        // деньги: плавный счётчик + вспышка цвета при изменении
+        if (_shownMoney < 0f) _shownMoney = GameState.Money;
+        if (!_shopOpen)
+            _shownMoney = Mathf.MoveTowards(_shownMoney, GameState.Money,
+                Mathf.Max(60f, Mathf.Abs(GameState.Money - _shownMoney) * 4f) * dt);
+        SetText(_hudMoney, $"$ {Mathf.RoundToInt(_shownMoney)}");
+        _hudMoney.color = Color.Lerp(_hudMoney.color, GreenC, dt * 3f);
 
-        string s =
-            $"{Loc.T("DAY", "ДЕНЬ")} {GameState.Day}/{GameState.TotalDays}\n" +
-            $"<color=#7CFC9A>$ {GameState.Money}</color>\n" +
-            $"{Loc.T("AMMO", "ПАТРОНЫ")} <color={ammoCol}>{GameState.Ammo}</color>/{GameState.MaxAmmo}\n" +
-            $"{Loc.T("TAPES", "КАССЕТЫ")} {GameState.Cassettes}\n" +
-            $"{Loc.T("MISTAKES", "ОШИБКИ")} [{strikes}]";
+        if (_lastMoney >= 0 && GameState.Money != _lastMoney)
+        {
+            _hudMoney.color = GameState.Money > _lastMoney ? Color.white : RedC;
+            StartCoroutine(UiFx.Punch(_hudMoney.transform, 0.18f, 0.35f));
+        }
+        _lastMoney = GameState.Money;
 
-        if (GameState.TapeLoaded)
-            s += $"\n<color=#FFC857>{Loc.T("TAPE LOADED", "КАССЕТА ВСТАВЛЕНА")}</color>";
+        // патроны
+        string ammoCol = GameState.Ammo <= 0 ? Red : "#FFFFFF";
+        SetText(_ammoRow.label, Loc.T("AMMO", "ПАТРОНЫ"));
+        SetText(_ammoRow.value, $"<color={ammoCol}>{GameState.Ammo}</color> / {GameState.MaxAmmo}");
+        SetPips(_ammoRow, GameState.Ammo, new Color(1f, 1f, 1f, 0.95f), _lastAmmo);
+        _lastAmmo = GameState.Ammo;
 
-        return s;
+        // кассеты
+        string tapeValue = GameState.Cassettes.ToString();
+        if (GameState.TapeLoaded) tapeValue += $"  <color={Amber}>{Loc.T("[IN RECORDER]", "[В ДИКТОФОНЕ]")}</color>";
+        SetText(_tapeRow.label, Loc.T("TAPES", "КАССЕТЫ"));
+        SetText(_tapeRow.value, tapeValue);
+        SetPips(_tapeRow, GameState.Cassettes, AmberC, _lastTapes);
+        _lastTapes = GameState.Cassettes;
+
+        // ошибки
+        SetText(_strikeRow.label, Loc.T("MISTAKES", "ОШИБКИ"));
+        SetText(_strikeRow.value, $"{GameState.Strikes} / {GameState.MaxStrikes}");
+        SetPips(_strikeRow, GameState.Strikes, RedC, _lastStrikes);
+        _lastStrikes = GameState.Strikes;
+    }
+
+    private void SetPips(StatRow row, int filled, Color on, int previous)
+    {
+        for (int i = 0; i < row.pips.Length; i++)
+        {
+            bool isOn = i < filled;
+            row.pips[i].color = isOn ? on : PipOff;
+            if (previous >= 0 && i >= Mathf.Min(previous, filled) && i < Mathf.Max(previous, filled) && previous != filled)
+            {
+                if (row.pips[i].transform.localScale.x < 1.01f)
+                    StartCoroutine(UiFx.Punch(row.pips[i].transform, 0.6f, 0.35f));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Данные для панели заданий. Шаги НЕ последовательные: показываем все сразу как чеклист.
+    /// Если активного задания нет, но игроку пора садиться, подставляем "Сядь в кресло".
+    /// </summary>
+    private bool GetQuestView(out string title, out bool pulse)
+    {
+        title = null;
+        pulse = false;
+        _vTexts.Clear();
+        _vDone.Clear();
+
+        QuestManager qm = QuestManager.Instance;
+        if (qm != null && qm.HasActiveQuest)
+        {
+            title = qm.CurrentQuestTitle;
+            string[] t = qm.CurrentStepTexts;
+            bool[] d = qm.CurrentStepsDone;
+            for (int i = 0; i < t.Length && i < MaxQuestRows; i++)
+            {
+                _vTexts.Add(t[i]);
+                _vDone.Add(d != null && i < d.Length && d[i]);
+            }
+            return true;
+        }
+
+        bool inspected = GameState.Day > 1 || (qm != null && qm.IsQuestCompletedBefore(0));
+        bool needSit = !_locked && !Ending.IsEnding && !GameState.VerdictMade
+                       && player != null && !player.isSitting && inspected
+                       && !IntroText.isIntro;
+        if (needSit)
+        {
+            title = Loc.T("Interrogation", "Допрос");
+            _vTexts.Add(Loc.T("Sit down in the chair", "Сядь в кресло"));
+            _vDone.Add(false);
+            pulse = true;
+            return true;
+        }
+        return false;
+    }
+
+    private void UpdateQuest(float dt)
+    {
+        bool has = GetQuestView(out string title, out bool pulse);
+        _questGroup.alpha = Mathf.MoveTowards(_questGroup.alpha, has ? 1f : 0f, dt * 4f);
+        if (!has) return;
+
+        string key = title + "|" + _vTexts.Count;
+        bool isNew = key != _questKey;
+        if (isNew)
+        {
+            _questKey = key;
+            StartCoroutine(UiFx.Punch(_questPanel, 0.03f, 0.4f));
+            StartCoroutine(StripFlash());
+        }
+
+        SetText(_questHeader, Loc.T("OBJECTIVE", "ЗАДАНИЕ"));
+        SetText(_questName, title);
+
+        float pulseA = 0.55f + 0.45f * Mathf.Sin(Time.unscaledTime * 4.5f);
+        for (int i = 0; i < _qRows.Count; i++)
+        {
+            QRow r = _qRows[i];
+            bool on = i < _vTexts.Count;
+            if (r.root.gameObject.activeSelf != on) r.root.gameObject.SetActive(on);
+            if (!on) continue;
+
+            bool d = _vDone[i];
+            if (isNew)
+            {
+                r.done = d;
+                r.k = d ? 1f : 0f;
+            }
+            else if (d && !r.done)
+            {
+                r.done = true;
+                StartCoroutine(UiFx.Punch(r.root, 0.08f, 0.3f));
+            }
+            else if (!d)
+            {
+                r.done = false;
+            }
+
+            r.k = Mathf.MoveTowards(r.k, r.done ? 1f : 0f, dt * 4.5f);
+            r.tick.transform.localScale = Vector3.one * UiFx.EaseOutBack(r.k);
+            r.tick.color = accent;
+            r.box.color = Color.Lerp(new Color(1f, 1f, 1f, 0.18f), new Color(accent.r, accent.g, accent.b, 0.35f), r.k);
+
+            string txt = r.done
+                ? $"<color=#6B7785><s>{_vTexts[i]}</s></color>"
+                : $"<color=#E6EBF0>{_vTexts[i]}</color>";
+            SetText(r.label, txt);
+
+            if (pulse && !r.done)
+            {
+                r.label.alpha = pulseA;
+                r.box.color = new Color(accent.r, accent.g, accent.b, 0.15f + 0.3f * pulseA);
+            }
+            else
+            {
+                r.label.alpha = 1f;
+            }
+        }
+    }
+
+    private IEnumerator StripFlash()
+    {
+        float t = 0f;
+        while (t < 0.6f)
+        {
+            t += Time.unscaledDeltaTime;
+            _questStrip.color = Color.Lerp(Color.white, accent, UiFx.EaseOutCubic(t / 0.6f));
+            yield return null;
+        }
+        _questStrip.color = accent;
     }
 
     // ====================================================================
@@ -363,22 +767,118 @@ public class DayUI : MonoBehaviour
         BuildReport();
         BuildShop();
         BuildEnd();
+
+        _flashGroup = MakeOverlay("Flash", Color.white);
+        _flashGroup.alpha = 0f;
+        _flashGroup.blocksRaycasts = false;
+        _flashGroup.interactable = false;
+
         _fadeGroup = MakeOverlay("Fade", Color.black);
     }
 
     private void BuildHud()
     {
-        RectTransform rt = NewRect("Hud", _canvas.transform);
-        rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(1f, 1f);
-        rt.anchoredPosition = new Vector2(-40f, -40f);
-        rt.sizeDelta = new Vector2(460f, 240f);
+        _hudRoot = NewRect("Hud", _canvas.transform);
+        _hudRoot.anchorMin = _hudRoot.anchorMax = _hudRoot.pivot = new Vector2(0f, 1f);
+        _hudRoot.anchoredPosition = new Vector2(40f, -40f);
+        _hudRoot.sizeDelta = new Vector2(440f, 0f);
 
-        _hudGroup = rt.gameObject.AddComponent<CanvasGroup>();
+        _hudGroup = _hudRoot.gameObject.AddComponent<CanvasGroup>();
+        _hudGroup.alpha = 0f;
         _hudGroup.blocksRaycasts = false;
         _hudGroup.interactable = false;
 
-        _hudText = MakeText(rt, "Text", 26, TextAlignmentOptions.TopRight, Color.white);
-        Stretch(_hudText.rectTransform);
+        var v = _hudRoot.gameObject.AddComponent<VerticalLayoutGroup>();
+        v.spacing = 14f;
+        v.childAlignment = TextAnchor.UpperLeft;
+        v.childControlWidth = true;
+        v.childControlHeight = true;
+        v.childForceExpandWidth = true;
+        v.childForceExpandHeight = false;
+        var fit = _hudRoot.gameObject.AddComponent<ContentSizeFitter>();
+        fit.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+        // Карточка: день, деньги, расходники
+        RectTransform meta = MakePanel(_hudRoot, "Meta", out _);
+        _hudTitle = MakeText(meta, "Day", 24, TextAlignmentOptions.TopLeft, accent);
+        _hudTitle.characterSpacing = 4f;
+        _hudMoney = MakeText(meta, "Money", 54, TextAlignmentOptions.TopLeft, GreenC);
+        _hudMoney.fontStyle = FontStyles.Bold;
+        _ammoRow = MakeStat(meta, GameState.MaxAmmo);
+        _tapeRow = MakeStat(meta, GameState.MaxCassettes);
+        _strikeRow = MakeStat(meta, GameState.MaxStrikes);
+
+        // Панель заданий
+        _questPanel = MakePanel(_hudRoot, "Quest", out _questStrip);
+        _questGroup = _questPanel.gameObject.AddComponent<CanvasGroup>();
+        _questGroup.alpha = 0f;
+        _questHeader = MakeText(_questPanel, "Header", 20, TextAlignmentOptions.TopLeft, TextDim);
+        _questHeader.characterSpacing = 4f;
+        _questName = MakeText(_questPanel, "Name", 30, TextAlignmentOptions.TopLeft, Color.white);
+        _questName.fontStyle = FontStyles.Bold;
+
+        for (int i = 0; i < MaxQuestRows; i++)
+        {
+            var r = new QRow();
+            r.root = NewRect("Step", _questPanel);
+            var h = r.root.gameObject.AddComponent<HorizontalLayoutGroup>();
+            h.spacing = 12f;
+            h.childAlignment = TextAnchor.UpperLeft;
+            h.childControlWidth = true;
+            h.childControlHeight = true;
+            h.childForceExpandWidth = false;
+            h.childForceExpandHeight = false;
+
+            r.box = UiFx.Img(r.root, "Box", UiFx.Rounded(5), new Color(1f, 1f, 1f, 0.18f), true);
+            UiFx.Layout(r.box.gameObject, 24f, 24f, 24f, 24f);
+            r.tick = UiFx.Img(r.box.transform, "Tick", UiFx.Rounded(4), accent, true);
+            UiFx.Stretch(r.tick.rectTransform, 5f, 5f, 5f, 5f);
+
+            r.label = MakeText(r.root, "Label", 24, TextAlignmentOptions.TopLeft, TextMain);
+            UiFx.Layout(r.label.gameObject, flexW: 1f);
+
+            r.root.gameObject.SetActive(false);
+            _qRows.Add(r);
+        }
+    }
+
+    private StatRow MakeStat(Transform parent, int pipCount)
+    {
+        var row = new StatRow();
+
+        RectTransform line = NewRect("Line", parent);
+        var h = line.gameObject.AddComponent<HorizontalLayoutGroup>();
+        h.spacing = 8f;
+        h.childAlignment = TextAnchor.MiddleLeft;
+        h.childControlWidth = true;
+        h.childControlHeight = true;
+        h.childForceExpandWidth = false;
+        h.childForceExpandHeight = true;
+        UiFx.Layout(line.gameObject, minH: 30f, prefH: 30f);
+
+        row.label = MakeText(line, "Label", 21, TextAlignmentOptions.MidlineLeft, TextDim);
+        UiFx.Layout(row.label.gameObject, flexW: 1f);
+        row.value = MakeText(line, "Value", 25, TextAlignmentOptions.MidlineRight, Color.white);
+        UiFx.Layout(row.value.gameObject, minW: 190f, prefW: 190f);
+
+        RectTransform pips = NewRect("Pips", parent);
+        var ph = pips.gameObject.AddComponent<HorizontalLayoutGroup>();
+        ph.spacing = 4f;
+        ph.childAlignment = TextAnchor.MiddleLeft;
+        ph.childControlWidth = true;
+        ph.childControlHeight = true;
+        ph.childForceExpandWidth = false;
+        ph.childForceExpandHeight = false;
+        UiFx.Layout(pips.gameObject, minH: 12f, prefH: 12f);
+
+        row.pips = new Image[pipCount];
+        for (int i = 0; i < pipCount; i++)
+        {
+            Image p = UiFx.Img(pips, "Pip", UiFx.Rounded(3), PipOff, true);
+            UiFx.Layout(p.gameObject, 18f, 10f, 18f, 10f);
+            row.pips[i] = p;
+        }
+        return row;
     }
 
     private void BuildToast()
@@ -400,51 +900,80 @@ public class DayUI : MonoBehaviour
     private void BuildCard()
     {
         _cardGroup = MakeOverlay("DayCard", Color.black);
-        _cardText = MakeText(_cardGroup.transform, "Text", 96, TextAlignmentOptions.Center, Color.white);
+        _cardText = MakeText(_cardGroup.transform, "Text", 110, TextAlignmentOptions.Center, Color.white);
+        _cardText.fontStyle = FontStyles.Bold;
+        _cardText.characterSpacing = 10f;
         Stretch(_cardText.rectTransform);
+
+        Image line = UiFx.Img(_cardGroup.transform, "Line", null, accent);
+        _cardLine = line.rectTransform;
+        _cardLine.anchorMin = _cardLine.anchorMax = new Vector2(0.5f, 0.5f);
+        _cardLine.pivot = new Vector2(0.5f, 0.5f);
+        _cardLine.anchoredPosition = new Vector2(0f, -150f);
+        _cardLine.sizeDelta = new Vector2(0f, 3f);
     }
 
     private void BuildReport()
     {
-        _reportGroup = MakeOverlay("Report", new Color(0.02f, 0.03f, 0.05f, 0.97f));
+        _reportGroup = MakeOverlay("Report", Overlay);
         RectTransform col = MakeColumn(_reportGroup.transform, 1000f);
 
-        _reportTitle = MakeText(col, "Title", 64, TextAlignmentOptions.Center, Color.white);
+        _reportSub = MakeText(col, "Suspect", 40, TextAlignmentOptions.Center, TextMain);
+        AddLayout(_reportSub.gameObject, 70f);
+
+        _reportTitle = MakeText(col, "Title", 66, TextAlignmentOptions.Center, Color.white);
+        _reportTitle.fontStyle = FontStyles.Bold;
+        _reportTitle.characterSpacing = 6f;
         AddLayout(_reportTitle.gameObject, 100f);
 
-        _reportLines = MakeText(col, "Lines", 34, TextAlignmentOptions.TopLeft, new Color(0.85f, 0.88f, 0.92f));
-        AddLayout(_reportLines.gameObject, 330f);
+        _reportRows = NewRect("Rows", col);
+        var v = _reportRows.gameObject.AddComponent<VerticalLayoutGroup>();
+        v.spacing = 8f;
+        v.childAlignment = TextAnchor.UpperCenter;
+        v.childControlWidth = true;
+        v.childControlHeight = true;
+        v.childForceExpandWidth = true;
+        v.childForceExpandHeight = false;
+        UiFx.Layout(_reportRows.gameObject, minH: 340f, prefH: 340f);
 
         _reportButton = MakeButton(col, "Continue", 80f);
         _reportButton.onClick.AddListener(OnReportContinue);
+        _reportButton.gameObject.AddComponent<CanvasGroup>();
     }
 
     private void BuildShop()
     {
-        _shopGroup = MakeOverlay("Shop", new Color(0.02f, 0.03f, 0.05f, 0.97f));
+        _shopGroup = MakeOverlay("Shop", Overlay);
         RectTransform col = MakeColumn(_shopGroup.transform, 1000f);
 
-        TMP_Text title = MakeText(col, "Title", 64, TextAlignmentOptions.Center, Color.white);
+        TMP_Text title = MakeText(col, "Title", 62, TextAlignmentOptions.Center, Color.white);
         title.text = Loc.T("BLACK MARKET", "ЧЁРНЫЙ РЫНОК");
-        AddLayout(title.gameObject, 100f);
+        title.fontStyle = FontStyles.Bold;
+        title.characterSpacing = 8f;
+        AddLayout(title.gameObject, 90f);
+        _shopTitleGroup = title.gameObject.AddComponent<CanvasGroup>();
 
-        _shopMoney = MakeText(col, "Money", 40, TextAlignmentOptions.Center, Color.white);
-        AddLayout(_shopMoney.gameObject, 60f);
+        _shopMoney = MakeText(col, "Money", 46, TextAlignmentOptions.Center, Color.white);
+        AddLayout(_shopMoney.gameObject, 70f);
 
-        _shopAmmoBtn = MakeButton(col, "BuyAmmo", 80f);
-        _shopAmmoBtn.onClick.AddListener(() => Buy(true));
+        _shopAmmo = MakeShopRow(col);
+        _shopAmmo.buy.onClick.AddListener(() => Buy(true));
 
-        _shopTapeBtn = MakeButton(col, "BuyTape", 80f);
-        _shopTapeBtn.onClick.AddListener(() => Buy(false));
+        _shopTape = MakeShopRow(col);
+        _shopTape.buy.onClick.AddListener(() => Buy(false));
 
-        _shopInfo = MakeText(col, "Info", 26, TextAlignmentOptions.Center, new Color(0.6f, 0.65f, 0.72f));
+        _shopNotice = MakeText(col, "Notice", 30, TextAlignmentOptions.Center, TextMain);
+        AddLayout(_shopNotice.gameObject, 44f);
+
+        _shopInfo = MakeText(col, "Info", 24, TextAlignmentOptions.Center, TextDim);
         _shopInfo.text = Loc.T(
-            "A cassette lets you analyse the suspect's voice before the verdict.\nInsert it into the recorder BEFORE starting the interrogation.",
-            "Кассета позволяет проанализировать голос подозреваемого перед вердиктом.\nВставь её в диктофон ДО начала допроса.");
-        AddLayout(_shopInfo.gameObject, 110f);
+            "Insert the cassette into the recorder BEFORE starting the interrogation.",
+            "Вставь кассету в диктофон ДО начала допроса.");
+        AddLayout(_shopInfo.gameObject, 40f);
 
         _shopNextBtn = MakeButton(col, "NextDay", 90f);
         _shopNextBtn.onClick.AddListener(OnNextDay);
+        _shopNextGroup = _shopNextBtn.gameObject.AddComponent<CanvasGroup>();
     }
 
     private void BuildEnd()
@@ -452,13 +981,15 @@ public class DayUI : MonoBehaviour
         _endGroup = MakeOverlay("End", new Color(0.02f, 0.02f, 0.03f, 0.99f));
         RectTransform col = MakeColumn(_endGroup.transform, 1000f);
 
-        _endTitle = MakeText(col, "Title", 80, TextAlignmentOptions.Center, Color.white);
+        _endTitle = MakeText(col, "Title", 84, TextAlignmentOptions.Center, Color.white);
+        _endTitle.fontStyle = FontStyles.Bold;
+        _endTitle.characterSpacing = 8f;
         AddLayout(_endTitle.gameObject, 130f);
 
         _endBody = MakeText(col, "Body", 36, TextAlignmentOptions.Center, new Color(0.85f, 0.88f, 0.92f));
         AddLayout(_endBody.gameObject, 260f);
 
-        _endButton = MakeButton(col, "Menu", 80f);
+        _endButton = MakeButton(col, "Exit", 80f);
         _endButton.onClick.AddListener(OnEndButton);
     }
 
@@ -468,18 +999,12 @@ public class DayUI : MonoBehaviour
 
     private RectTransform NewRect(string name, Transform parent)
     {
-        var go = new GameObject(name, typeof(RectTransform));
-        var rt = go.GetComponent<RectTransform>();
-        rt.SetParent(parent, false);
-        return rt;
+        return UiFx.Rect(name, parent);
     }
 
     private void Stretch(RectTransform rt)
     {
-        rt.anchorMin = Vector2.zero;
-        rt.anchorMax = Vector2.one;
-        rt.offsetMin = Vector2.zero;
-        rt.offsetMax = Vector2.zero;
+        UiFx.Stretch(rt);
     }
 
     private void SetGroup(CanvasGroup g, bool on)
@@ -500,17 +1025,36 @@ public class DayUI : MonoBehaviour
         return cg;
     }
 
-    private TMP_Text MakeText(Transform parent, string name, int size, TextAlignmentOptions align, Color color)
+    /// <summary>Тёмная скруглённая панель с цветной полоской слева; внутри раскладывается по вертикали.</summary>
+    private RectTransform MakePanel(Transform parent, string name, out Image strip)
     {
         RectTransform rt = NewRect(name, parent);
-        var t = rt.gameObject.AddComponent<TextMeshProUGUI>();
-        if (font != null) t.font = font;
-        t.fontSize = size;
-        t.alignment = align;
-        t.color = color;
-        t.richText = true;
-        t.raycastTarget = false;
-        return t;
+        UiFx.Panel(rt, PanelBg, 18);
+
+        var v = rt.gameObject.AddComponent<VerticalLayoutGroup>();
+        v.padding = new RectOffset(26, 22, 16, 18);
+        v.spacing = 6f;
+        v.childAlignment = TextAnchor.UpperLeft;
+        v.childControlWidth = true;
+        v.childControlHeight = true;
+        v.childForceExpandWidth = true;
+        v.childForceExpandHeight = false;
+
+        strip = UiFx.Img(rt, "Accent", UiFx.Rounded(3), accent, true);
+        var le = strip.gameObject.AddComponent<LayoutElement>();
+        le.ignoreLayout = true;
+        RectTransform sr = strip.rectTransform;
+        sr.anchorMin = new Vector2(0f, 0f);
+        sr.anchorMax = new Vector2(0f, 1f);
+        sr.pivot = new Vector2(0f, 0.5f);
+        sr.sizeDelta = new Vector2(5f, -26f);
+        sr.anchoredPosition = new Vector2(10f, 0f);
+        return rt;
+    }
+
+    private TMP_Text MakeText(Transform parent, string name, int size, TextAlignmentOptions align, Color color)
+    {
+        return UiFx.Text(parent, name, size, align, color, font);
     }
 
     private RectTransform MakeColumn(Transform parent, float width)
@@ -534,15 +1078,15 @@ public class DayUI : MonoBehaviour
 
     private void AddLayout(GameObject go, float minHeight)
     {
-        var le = go.AddComponent<LayoutElement>();
-        le.minHeight = minHeight;
-        le.preferredHeight = minHeight;
+        UiFx.Layout(go, minH: minHeight, prefH: minHeight);
     }
 
     private Button MakeButton(Transform parent, string name, float height)
     {
         RectTransform rt = NewRect(name, parent);
         var img = rt.gameObject.AddComponent<Image>();
+        img.sprite = UiFx.Rounded(16);
+        img.type = Image.Type.Sliced;
         img.color = Color.white;
 
         var btn = rt.gameObject.AddComponent<Button>();
@@ -560,25 +1104,55 @@ public class DayUI : MonoBehaviour
 
         TMP_Text label = MakeText(rt, "Label", 30, TextAlignmentOptions.Center, Color.white);
         Stretch(label.rectTransform);
+
+        rt.gameObject.AddComponent<UiButtonFx>();
         return btn;
+    }
+
+    /// <summary>Строка магазина: название и описание | сколько есть | кнопка покупки.</summary>
+    private ShopRow MakeShopRow(Transform parent)
+    {
+        var s = new ShopRow();
+
+        RectTransform row = NewRect("Row", parent);
+        UiFx.Panel(row, RowBg, 16);
+        s.group = row.gameObject.AddComponent<CanvasGroup>();
+
+        var h = row.gameObject.AddComponent<HorizontalLayoutGroup>();
+        h.padding = new RectOffset(28, 16, 10, 10);
+        h.spacing = 24f;
+        h.childAlignment = TextAnchor.MiddleLeft;
+        h.childControlWidth = true;
+        h.childControlHeight = true;
+        h.childForceExpandWidth = false;
+        h.childForceExpandHeight = true;
+        UiFx.Layout(row.gameObject, minH: 110f, prefH: 110f);
+
+        s.name = MakeText(row, "Name", 34, TextAlignmentOptions.MidlineLeft, TextMain);
+        UiFx.Layout(s.name.gameObject, flexW: 1f);
+
+        s.owned = MakeText(row, "Owned", 36, TextAlignmentOptions.Midline, Color.white);
+        UiFx.Layout(s.owned.gameObject, minW: 150f, prefW: 150f);
+
+        s.buy = MakeButton(row, "Buy", 0f);
+        UiFx.Layout(s.buy.gameObject, minW: 260f, prefW: 260f);
+        return s;
+    }
+
+    private void SetText(TMP_Text t, string s)
+    {
+        if (t.text != s) t.text = s;
     }
 
     private void SetLabel(Button b, string text)
     {
         TMP_Text t = b.GetComponentInChildren<TMP_Text>();
-        if (t != null) t.text = text;
+        if (t != null && t.text != text) t.text = text;
     }
 
     private IEnumerator Fade(CanvasGroup g, float from, float to, float time)
     {
-        float t = 0f;
-        while (t < time)
-        {
-            t += Time.unscaledDeltaTime;
-            g.alpha = Mathf.Lerp(from, to, t / time);
-            yield return null;
-        }
-        g.alpha = to;
+        return UiFx.Fade(g, from, to, time);
     }
 
     private void Play(AudioClip clip)

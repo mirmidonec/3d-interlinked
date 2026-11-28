@@ -59,6 +59,14 @@ public class PcScreenSwitcher : MonoBehaviour
         if (voiceTabButton != null) voiceTabButton.onClick.AddListener(TryShowVoice);
     }
 
+    private void Start()
+    {
+        if (connection == null) Debug.LogWarning("[PcScreenSwitcher] Не назначен Connection: переключатель не будет работать.");
+        else if (connection.panel == null) Debug.LogWarning("[PcScreenSwitcher] У Connection не назначен panel.");
+        if (logScreen == null) Debug.LogWarning("[PcScreenSwitcher] Не назначен Log Screen.");
+        if (voiceScreen == null) Debug.LogWarning("[PcScreenSwitcher] Не назначен Voice Screen.");
+    }
+
     private void OnDestroy()
     {
         if (Instance == this) Instance = null;
@@ -94,6 +102,10 @@ public class PcScreenSwitcher : MonoBehaviour
             if (interactive) tabHint.text = BuildHint();
         }
 
+        // Q = выход из-за ПК: анализатор прячем СРАЗУ, не дожидаясь возврата камеры.
+        if (inPc && !CameraTranzition.InTransition && Input.GetKeyDown(KeyCode.Q) && _current == Screen.Voice)
+            Show(Screen.Log);
+
         if (!interactive) return;
 
         if (_denyTimer > 0f) _denyTimer -= Time.deltaTime;
@@ -114,6 +126,8 @@ public class PcScreenSwitcher : MonoBehaviour
         else
         {
             _denyTimer = 2f;   // на 2 секунды показываем причину отказа
+            Debug.Log($"[PcScreenSwitcher] Анализ недоступен: TapeLoaded={GameState.TapeLoaded}, " +
+                      $"Cassettes={GameState.Cassettes}, isFinaleStart={(DialogueSystem.instance != null && DialogueSystem.instance.isFinaleStart)}");
         }
     }
 
@@ -143,8 +157,10 @@ public class PcScreenSwitcher : MonoBehaviour
         if (_denyTimer > 0f)
         {
             if (!GameState.TapeLoaded)
-                return Loc.T("No tape was recorded", "Запись не велась: кассета не была вставлена");
-            return Loc.T("Available before the verdict", "Доступно перед вердиктом");
+                return GameState.Cassettes > 0
+                    ? Loc.T("No tape in the recorder. Insert it BEFORE the interrogation", "Кассета не вставлена. Её вставляют в диктофон ДО допроса")
+                    : Loc.T("No tapes left. Buy one in the shop", "Кассет нет. Купи в магазине между днями");
+            return Loc.T("Available when the interrogation is over", "Доступно, когда допрос закончен");
         }
 
         return Loc.T($"[{switchKey}] Voice analysis (locked)", $"[{switchKey}] Анализ голоса (недоступно)");

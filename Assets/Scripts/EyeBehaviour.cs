@@ -26,8 +26,45 @@ public class EyeBehaviour : MonoBehaviour
     private bool _isBlinking;
     private Vector3 _eyeballOpenScale;
 
+    private bool _inited;
+    private bool _customCamera;
+    private Camera _cam;
+
+    public float IrisMoveRadius
+    {
+        get => _irisMoveRadius;
+        set => _irisMoveRadius = value;
+    }
+
+    /// <summary>Собрать глаз из кода (для нового UI допроса). cam = null для Screen Space - Overlay.</summary>
+    public void Bind(RectTransform eyeball, RectTransform iris, RectTransform pupil, Camera cam)
+    {
+        _eyeball = eyeball;
+        _iris = iris;
+        _pupil = pupil;
+        _cam = cam;
+        _customCamera = true;
+        Init();
+    }
+
+    /// <summary>Спрятать старый глаз из сцены, когда вместо него нарисован новый.</summary>
+    public void HideVisuals()
+    {
+        if (_eyeball != null) _eyeball.gameObject.SetActive(false);
+        if (_iris != null) _iris.gameObject.SetActive(false);
+        if (_pupil != null) _pupil.gameObject.SetActive(false);
+        enabled = false;
+    }
+
     private void Start()
     {
+        if (!_inited) Init();
+    }
+
+    private void Init()
+    {
+        if (_inited || _eyeball == null) return;
+        _inited = true;
         _eyeballRadius = Mathf.Min(_eyeball.rect.width, _eyeball.rect.height) * 0.5f;
         _eyeballOpenScale = _eyeball.localScale;
         StartCoroutine(BlinkRoutine());
@@ -35,7 +72,7 @@ public class EyeBehaviour : MonoBehaviour
 
     private void Update()
     {
-        if (_isBlinking)
+        if (!_inited || _isBlinking)
             return;
 
         TrackMouse();
@@ -45,10 +82,11 @@ public class EyeBehaviour : MonoBehaviour
     private void TrackMouse()
     {
         Vector2 localMousePos;
+        Camera cam = _customCamera ? _cam : Camera.main;
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
             _eyeball,
             Input.mousePosition,
-            Camera.main,
+            cam,
             out localMousePos);
 
         float irisRadius = _iris.rect.width * 0.5f;
@@ -59,11 +97,11 @@ public class EyeBehaviour : MonoBehaviour
         _pupil.anchoredPosition = _iris.anchoredPosition;
     }
 
-   private void AnimatePupil()
-{
-    _currentDilation = Mathf.Lerp(_currentDilation, _targetDilation, Time.deltaTime * _dilationSpeed);
-    _pupil.localScale = new Vector3(_currentDilation, _currentDilation, 1f);
-}
+    private void AnimatePupil()
+    {
+        _currentDilation = Mathf.Lerp(_currentDilation, _targetDilation, Time.deltaTime * _dilationSpeed);
+        _pupil.localScale = new Vector3(_currentDilation, _currentDilation, 1f);
+    }
 
     public void SetPupilTarget(float dilation)
     {
