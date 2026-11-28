@@ -55,6 +55,9 @@ public class DayUI : MonoBehaviour
     private CanvasGroup _hudGroup, _cardGroup, _toastGroup, _reportGroup, _shopGroup, _endGroup, _fadeGroup, _flashGroup;
     private RectTransform _hudRoot, _cardLine;
     private TMP_Text _hudTitle, _hudMoney;
+    private RectTransform _recPill;
+    private Image _recDot;
+    private TMP_Text _recText;
     private StatRow _ammoRow, _tapeRow, _strikeRow;
     private RectTransform _questPanel;
     private CanvasGroup _questGroup;
@@ -120,6 +123,11 @@ public class DayUI : MonoBehaviour
         }
         Instance = this;
 
+        // Статики переживают перезагрузку сцены. Если Ending не запустит Start (объект выключен),
+        // HUD, квесты и пауза остались бы скрытыми навсегда. Поэтому сбрасываем здесь.
+        Ending.IsEnding = false;
+        Time.timeScale = 1f;
+
         if (audioSource == null)
         {
             audioSource = gameObject.AddComponent<AudioSource>();
@@ -139,6 +147,7 @@ public class DayUI : MonoBehaviour
         if (player == null) player = FindObjectOfType<PlayerController>();
 
         GameState.BeginDay();
+        StartCoroutine(BootstrapRoutine());
         StartCoroutine(DayStartRoutine());
     }
 
@@ -197,6 +206,8 @@ public class DayUI : MonoBehaviour
         {
             Debug.LogError("[DayUI] SaveProgress failed: " + e);
         }
+
+        LockPlayer();
 
         Cursor.lockState = CursorLockMode.Confined;
         Cursor.visible = true;
@@ -333,19 +344,33 @@ public class DayUI : MonoBehaviour
             yield return new WaitForSecondsRealtime(0.38f);
         }
 
-        // 4. Баланс со счётчиком
+        // 3b. Пояснения: какой бонус не получен и почему
+        foreach (string note in r.Missed)
+        {
+            AddNote(note);
+            yield return new WaitForSecondsRealtime(0.3f);
+        }
+
+        // 4. Итог дня и баланс: сначала сколько заработано за день, потом сколько стало всего
+        int delta = r.MoneyAfter - r.MoneyBefore;
+        string dCol = delta >= 0 ? Green : Red;
+        string dSign = delta >= 0 ? "+" : "-";
+        AddRow($"<b>{Loc.T("Day total", "Итого за день")}</b>", $"<color={dCol}><b>{dSign}${Mathf.Abs(delta)}</b></color>");
+        Play(tickSound);
+        yield return new WaitForSecondsRealtime(0.45f);
+
         TMP_Text balanceValue;
-        AddRow(Loc.T("Balance", "Баланс"), $"${r.MoneyBefore}", out balanceValue);
-        yield return new WaitForSecondsRealtime(0.35f);
+        AddRow(Loc.T("Balance", "Баланс"), "", out balanceValue);
+        string was = $"<size=58%><color={Dim}>{Loc.T("was", "было")} ${r.MoneyBefore}</color></size>";
         float t = 0f;
         while (t < 0.9f)
         {
             t += Time.unscaledDeltaTime;
             int cur = Mathf.RoundToInt(Mathf.Lerp(r.MoneyBefore, r.MoneyAfter, UiFx.EaseOutCubic(t / 0.9f)));
-            balanceValue.text = $"${r.MoneyBefore}  >  <color=#FFFFFF>${cur}</color>";
+            balanceValue.text = $"<b>${cur}</b>   {was}";
             yield return null;
         }
-        balanceValue.text = $"${r.MoneyBefore}  >  <color=#FFFFFF>${r.MoneyAfter}</color>";
+        balanceValue.text = $"<b>${r.MoneyAfter}</b>   {was}";
         StartCoroutine(UiFx.Punch(balanceValue.transform, 0.12f, 0.35f));
         yield return new WaitForSecondsRealtime(0.4f);
 
@@ -597,12 +622,23 @@ public class DayUI : MonoBehaviour
         _lastAmmo = GameState.Ammo;
 
         // кассеты
-        string tapeValue = GameState.Cassettes.ToString();
-        if (GameState.TapeLoaded) tapeValue += $"  <color={Amber}>{Loc.T("[IN RECORDER]", "[В ДИКТОФОНЕ]")}</color>";
         SetText(_tapeRow.label, Loc.T("TAPES", "КАССЕТЫ"));
-        SetText(_tapeRow.value, tapeValue);
+        SetText(_tapeRow.value, $"{GameState.Cassettes} / {GameState.MaxCassettes}");
         SetPips(_tapeRow, GameState.Cassettes, AmberC, _lastTapes);
         _lastTapes = GameState.Cassettes;
+
+        // плашка "кассета в диктофоне" в шапке
+        bool loaded = GameState.TapeLoaded;
+        if (_recPill.gameObject.activeSelf != loaded)
+        {
+            _recPill.gameObject.SetActive(loaded);
+            if (loaded) StartCoroutine(UiFx.Punch(_recPill, 0.15f, 0.35f));
+        }
+        if (loaded)
+        {
+            SetText(_recText, Loc.T("TAPE LOADED", "КАССЕТА ВСТАВЛЕНА"));
+            _recDot.color = new Color(AmberC.r, AmberC.g, AmberC.b, 0.45f + 0.55f * (0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 5f)));
+        }
 
         // ошибки
         SetText(_strikeRow.label, Loc.T("MISTAKES", "ОШИБКИ"));
@@ -800,10 +836,47 @@ public class DayUI : MonoBehaviour
 
         // Карточка: день, деньги, расходники
         RectTransform meta = MakePanel(_hudRoot, "Meta", out _);
-        _hudTitle = MakeText(meta, "Day", 24, TextAlignmentOptions.TopLeft, accent);
+
+        // Шапка: день слева, плашка "кассета вставлена" справа
+        RectTransform head = NewRect("Head", meta);
+        var hh = head.gameObject.AddComponent<HorizontalLayoutGroup>();
+        hh.spacing = 10f;
+        hh.childAlignment = TextAnchor.MiddleLeft;
+        hh.childControlWidth = true;
+        hh.childControlHeight = true;
+        hh.childForceExpandWidth = false;
+        hh.childForceExpandHeight = false;
+        UiFx.Layout(head.gameObject, minH: 34f, prefH: 34f);
+
+        _hudTitle = MakeText(head, "Day", 24, TextAlignmentOptions.MidlineLeft, accent);
         _hudTitle.characterSpacing = 4f;
-        _hudMoney = MakeText(meta, "Money", 54, TextAlignmentOptions.TopLeft, GreenC);
+        UiFx.Layout(_hudTitle.gameObject, flexW: 1f);
+
+        _recPill = NewRect("RecPill", head);
+        UiFx.Panel(_recPill, new Color(AmberC.r, AmberC.g, AmberC.b, 0.16f), 12);
+        var ph = _recPill.gameObject.AddComponent<HorizontalLayoutGroup>();
+        ph.padding = new RectOffset(12, 14, 4, 4);
+        ph.spacing = 8f;
+        ph.childAlignment = TextAnchor.MiddleLeft;
+        ph.childControlWidth = true;
+        ph.childControlHeight = true;
+        ph.childForceExpandWidth = false;
+        ph.childForceExpandHeight = false;
+        UiFx.Layout(_recPill.gameObject, minH: 28f, prefH: 28f);
+        _recDot = UiFx.Img(_recPill, "Dot", UiFx.Circle(), AmberC);
+        UiFx.Layout(_recDot.gameObject, 10f, 10f, 10f, 10f);
+        _recText = MakeText(_recPill, "Text", 16, TextAlignmentOptions.MidlineLeft, AmberC);
+        _recText.characterSpacing = 2f;
+        _recText.enableWordWrapping = false;
+        _recPill.gameObject.SetActive(false);
+
+        _hudMoney = MakeText(meta, "Money", 56, TextAlignmentOptions.TopLeft, GreenC);
         _hudMoney.fontStyle = FontStyles.Bold;
+        _hudMoney.enableWordWrapping = false;
+
+        Image divider = UiFx.Img(meta, "Divider", null, new Color(1f, 1f, 1f, 0.08f));
+        UiFx.Layout(divider.gameObject, minH: 2f, prefH: 2f);
+
         _ammoRow = MakeStat(meta, GameState.MaxAmmo);
         _tapeRow = MakeStat(meta, GameState.MaxCassettes);
         _strikeRow = MakeStat(meta, GameState.MaxStrikes);
@@ -859,7 +932,8 @@ public class DayUI : MonoBehaviour
         row.label = MakeText(line, "Label", 21, TextAlignmentOptions.MidlineLeft, TextDim);
         UiFx.Layout(row.label.gameObject, flexW: 1f);
         row.value = MakeText(line, "Value", 25, TextAlignmentOptions.MidlineRight, Color.white);
-        UiFx.Layout(row.value.gameObject, minW: 190f, prefW: 190f);
+        row.value.enableWordWrapping = false;
+        UiFx.Layout(row.value.gameObject, minW: 150f, prefW: 150f);
 
         RectTransform pips = NewRect("Pips", parent);
         var ph = pips.gameObject.AddComponent<HorizontalLayoutGroup>();
@@ -934,7 +1008,7 @@ public class DayUI : MonoBehaviour
         v.childControlHeight = true;
         v.childForceExpandWidth = true;
         v.childForceExpandHeight = false;
-        UiFx.Layout(_reportRows.gameObject, minH: 340f, prefH: 340f);
+        UiFx.Layout(_reportRows.gameObject, minH: 560f);
 
         _reportButton = MakeButton(col, "Continue", 80f);
         _reportButton.onClick.AddListener(OnReportContinue);
@@ -996,6 +1070,82 @@ public class DayUI : MonoBehaviour
     // ====================================================================
     // Мини-хелперы UI
     // ====================================================================
+
+    /// <summary>
+    /// Со 2-го дня перестраховка: если стартовые скрипты интро не отработали, игрок не должен застрять.
+    /// Все действия безопасны при повторном вызове.
+    /// </summary>
+    private IEnumerator BootstrapRoutine()
+    {
+        yield return null;   // даём IntroText и PauseMenu отработать первыми
+
+        if (GameState.Day > 1)
+        {
+            IntroText.isIntro = false;
+            if (QuestManager.Instance != null) QuestManager.Instance.SkipInspection();
+            if (player != null && !player.enabled)
+            {
+                Debug.LogWarning("[DayUI] Игрок был выключен на старте дня, включаю.");
+                player.enabled = true;
+            }
+            if (player != null && !player.IsDialogue)
+            {
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
+            }
+        }
+
+        Debug.Log($"[DayUI] День {GameState.Day}: IsEnding={Ending.IsEnding}, isIntro={IntroText.isIntro}, " +
+                  $"player.enabled={(player != null && player.enabled)}, quest={(QuestManager.Instance != null)}");
+    }
+
+    /// <summary>Отчёт открыт: управление, взаимодействие, стрельба и прицел выключаются.</summary>
+    private void LockPlayer()
+    {
+        if (player != null) player.enabled = false;
+
+        PlayerInteract pi = FindObjectOfType<PlayerInteract>();
+        if (pi != null)
+        {
+            pi.StopAllCoroutines();
+            if (pi._interactionText != null)
+            {
+                pi._interactionText.text = "";
+                pi._interactionText.gameObject.SetActive(false);
+            }
+            if (pi._guidText != null) pi._guidText.gameObject.SetActive(false);
+            pi.enabled = false;
+        }
+
+        PlayerShoot shoot = FindObjectOfType<PlayerShoot>();
+        if (shoot != null) shoot.enabled = false;
+
+        InventoryManager inv = FindObjectOfType<InventoryManager>();
+        if (inv != null) inv.enabled = false;
+
+        Crosshair ch = FindObjectOfType<Crosshair>();
+        if (ch != null && ch.crosshairPanel != null) ch.crosshairPanel.gameObject.SetActive(false);
+    }
+
+    /// <summary>Строка-пояснение в отчёте (серым, без суммы).</summary>
+    private void AddNote(string text)
+    {
+        RectTransform row = NewRect("Note", _reportRows);
+        var h = row.gameObject.AddComponent<HorizontalLayoutGroup>();
+        h.padding = new RectOffset(22, 22, 2, 2);
+        h.childAlignment = TextAnchor.MiddleLeft;
+        h.childControlWidth = true;
+        h.childControlHeight = true;
+        h.childForceExpandWidth = true;
+        h.childForceExpandHeight = false;
+        UiFx.Layout(row.gameObject, minH: 38f, prefH: 38f);
+
+        TMP_Text l = MakeText(row, "Text", 24, TextAlignmentOptions.MidlineLeft, TextDim);
+        l.text = $"<color={Amber}>!</color>  {text}";
+
+        var cg = row.gameObject.AddComponent<CanvasGroup>();
+        StartCoroutine(UiFx.Appear(cg, 0f, 0.28f));
+    }
 
     private RectTransform NewRect(string name, Transform parent)
     {

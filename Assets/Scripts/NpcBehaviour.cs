@@ -211,9 +211,10 @@ public class NpcBehaviour : Interactable
             yield return null;
         }
 
-        animator.SetBool("isWalking", false);
-        CameraEffectManager.Instance.StartEnd();
-        Destroy(gameObject);
+       animator.SetBool("isWalking", false);
+if (DayUI.Instance != null) DayUI.Instance.FinishDay(0.3f);
+else CameraEffectManager.Instance.StartEnd();
+Destroy(gameObject);
     }
 
 public AudioSource source2;

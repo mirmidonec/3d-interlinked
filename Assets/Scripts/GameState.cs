@@ -32,6 +32,7 @@ public class DayReport
     public int MoneyBefore;
     public int MoneyAfter;
     public List<ReportLine> Lines = new List<ReportLine>();
+    public List<string> Missed = new List<string>();   // пояснения: какой бонус не получен и почему
 }
 
 /// <summary>
@@ -173,6 +174,17 @@ public static class GameState
                 -PenaltyWrong));
             if (SuspectKilled)
                 r.Lines.Add(new ReportLine(Loc.T("Innocent killed", "Убит невиновный"), -PenaltyInnocentKilled));
+        }
+
+        // Пояснения для игрока: почему бонуса нет.
+        if (r.Correct)
+        {
+            if (TapeLoaded && !TapeAnalyzed)
+                r.Missed.Add(Loc.T("Voice analysis bonus not earned: the signal was never locked",
+                                   "Бонус за анализ голоса не получен: сигнал не был пойман"));
+            if (SuspectIsReplicant && !SuspectKilled)
+                r.Missed.Add(Loc.T("Replicant bonus not earned: the suspect was not eliminated",
+                                   "Бонус за устранение не получен: репликант не был убит"));
         }
 
         r.Lines.Add(new ReportLine(Loc.T("Department expenses", "Расходы отдела"), -DailyCost));

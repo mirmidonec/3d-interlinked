@@ -84,7 +84,8 @@ private void Awake()
 }
 void SetButtonLabel(Button b, string text)
 {
-    var tmp = b.GetComponentInChildren<TMP_Text>(true);
+    Transform label = b.transform.Find("Label");
+    TMP_Text tmp = label != null ? label.GetComponent<TMP_Text>() : b.GetComponentInChildren<TMP_Text>(true);
     if (tmp != null) { tmp.text = text; return; }
     var legacy = b.GetComponentInChildren<Text>(true);
     if (legacy != null) legacy.text = text;
@@ -277,75 +278,76 @@ public Button tapeButton;   // "Прослушать запись" — дубл�
     private Vignette vignette;
 
     public AudioClip rain;
-    IEnumerator ShowFinalResult()
-    {
-        QuestionPanel.SetActive(false);
-        statsPanel.SetActive(false);
-        FinalChoicePanel.SetActive(false);
-        dialogueText.text = "";
-        finalStatsText.text = "";
-        Ost.volume = 0f;
-        Ost.clip = endClip;
-        Ost.Play();
-        float duration = 6f;
-        float timer = 0f;
-        float startVolume = 0f;
-        float targetVolume = 0.4f;
-        if (volume != null)
-        {
-            if (volume.profile.TryGetSettings(out vignette))
-            {
-                Debug.Log("Vignette found!");
-            }
-        }
-
-        float targetVolumeVin = 0.7f;
-
-        while (timer < duration)
-        {
-            timer += Time.deltaTime;
-            Ost.volume = Mathf.Lerp(startVolume, targetVolume, timer / duration);
-            if (vignette != null)
-            {
-                vignette.intensity.value = Mathf.Lerp(startVolume, targetVolumeVin, timer / duration);
-            }
-            yield return null;
-        }
-        Ost.volume = targetVolume;
-
-
-        string endLine = PauseMenu.CurrentLanguage == PauseMenu.Language.English
-     ? "The interrogation is over..."
-     : "Допрос окончен...";
-
-        string verdictLine = PauseMenu.CurrentLanguage == PauseMenu.Language.English
-            ? "What is your final verdict?"
-            : "Каков твой окончательный вердикт?";
-
-        yield return StartCoroutine(TypeLine(endLine));
-        yield return new WaitForSeconds(0.5f);
-
-        ShowFinalSummary();
-
-        yield return new WaitForSeconds(0.5f);
-
-        yield return StartCoroutine(TypeLine(verdictLine));
-
-        FinalChoicePanel.SetActive(true);
-        if (tapeButton != null)
+ IEnumerator ShowFinalResult()
 {
-    tapeButton.gameObject.SetActive(GameState.TapeLoaded);
-    tapeButton.onClick.RemoveAllListeners();
-    tapeButton.onClick.AddListener(EbalsaGryzno);   // прячет панель и переводит камеру на ПК
-}
-        AnswerPanel.SetActive(false);
+    QuestionPanel.SetActive(false);
+    statsPanel.SetActive(false);
+    FinalChoicePanel.SetActive(false);
+    AnswerPanel.SetActive(false);            // пустое облако больше не висит
+    dialogueText.text = "";
+    finalStatsText.text = "";
 
-        replicantButton.onClick.RemoveAllListeners();
-        humanButton.onClick.RemoveAllListeners();
-        isFinaleStart = true;
-        replicantButton.onClick.AddListener(() => OnFinalChoice(true));
-        humanButton.onClick.AddListener(() => OnFinalChoice(false));
+    StartCoroutine(FinalAmbience());          // музыка и виньетка нарастают параллельно, ничего не ждём
+
+    string endLine = PauseMenu.CurrentLanguage == PauseMenu.Language.English
+        ? "The interrogation is over..."
+        : "Допрос окончен...";
+
+    string verdictLine = PauseMenu.CurrentLanguage == PauseMenu.Language.English
+        ? "What is your final verdict?"
+        : "Каков твой окончательный вердикт?";
+
+    yield return new WaitForSeconds(0.4f);
+    AnswerPanel.SetActive(true);
+    yield return StartCoroutine(TypeLine(endLine));
+    yield return new WaitForSeconds(0.3f);
+
+    ShowFinalSummary();
+
+    yield return new WaitForSeconds(0.3f);
+
+    yield return StartCoroutine(TypeLine(verdictLine));
+
+    FinalChoicePanel.SetActive(true);
+    if (tapeButton != null)
+    {
+        tapeButton.gameObject.SetActive(GameState.TapeLoaded);
+        tapeButton.onClick.RemoveAllListeners();
+        tapeButton.onClick.AddListener(EbalsaGryzno);
     }
+    AnswerPanel.SetActive(false);
+
+    replicantButton.onClick.RemoveAllListeners();
+    humanButton.onClick.RemoveAllListeners();
+    isFinaleStart = true;
+    replicantButton.onClick.AddListener(() => OnFinalChoice(true));
+    humanButton.onClick.AddListener(() => OnFinalChoice(false));
+}
+
+IEnumerator FinalAmbience()
+{
+    Ost.volume = 0f;
+    Ost.clip = endClip;
+    Ost.Play();
+
+    float duration = 6f;
+    float timer = 0f;
+    float targetVolume = 0.4f;
+    float targetVolumeVin = 0.7f;
+
+    if (volume != null)
+        volume.profile.TryGetSettings(out vignette);
+
+    while (timer < duration)
+    {
+        timer += Time.deltaTime;
+        Ost.volume = Mathf.Lerp(0f, targetVolume, timer / duration);
+        if (vignette != null)
+            vignette.intensity.value = Mathf.Lerp(0f, targetVolumeVin, timer / duration);
+        yield return null;
+    }
+    Ost.volume = targetVolume;
+}
   public CameraTranzition tranz;
 
   public bool isFinaleStart = false;
@@ -388,7 +390,6 @@ if (tapeButton != null) tapeButton.gameObject.SetActive(false);
         isFinaleStart = false;
         NpcChoiser.Instance.currentNpc.CloseDialogue();
         // Вердикт "человек": день закончен, отчёт сразу, не дожидаясь пока NPC уйдёт.
-if (!isReplicant && DayUI.Instance != null) DayUI.Instance.FinishDay(1.2f);
     }
     private float currentDelay = 0f;
     void OnQuestionChosen(QuestionData question)

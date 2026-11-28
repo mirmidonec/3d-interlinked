@@ -1,27 +1,48 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>Бегущая кардиограмма. Частота ударов = bpm. Рисуется ломаной со свечением и затухающим хвостом.</summary>
-public class EcgGraphic : MaskableGraphic
+/// <summary>
+/// Бегущая кардиограмма. Рисуется в маленькую текстуру (RawImage), поэтому не зависит от
+/// кастомных мешей UI. Частота ударов = bpm, хвост линии плавно затухает слева.
+/// </summary>
+[RequireComponent(typeof(RawImage))]
+public class EcgGraphic : MonoBehaviour
 {
     public float bpm = 75f;
-    public int sampleCount = 360;
-    public float samplesPerSecond = 180f;
-    public float thickness = 2.4f;
-    public float amplitude = 0.42f;
+    public Color color = new Color(0.25f, 0.85f, 1f);
+    public float samplesPerSecond = 150f;
+    public float amplitude = 0.40f;
     public float noise = 0.015f;
 
     /// <summary>Фаза текущего удара 0..1 (пик R около 0.245), для синхронизации сердечка.</summary>
     public float Phase => _phase;
 
-    private float[] _s;
+    private const int W = 400;
+    private const int H = 96;
+
+    private RawImage _img;
+    private Texture2D _tex;
+    private Color32[] _px;
+    private readonly float[] _s = new float[W];
     private float _phase;
     private float _acc;
 
-    protected override void OnEnable()
+    private void Awake()
     {
-        base.OnEnable();
-        raycastTarget = false;
+        _img = GetComponent<RawImage>();
+        _img.raycastTarget = false;
+        _img.color = Color.white;
+
+        _tex = new Texture2D(W, H, TextureFormat.RGBA32, false);
+        _tex.wrapMode = TextureWrapMode.Clamp;
+        _tex.filterMode = FilterMode.Bilinear;
+        _px = new Color32[W * H];
+        _img.texture = _tex;
+    }
+
+    private void OnDestroy()
+    {
+        if (_tex != null) Destroy(_tex);
     }
 
     private static float G(float x, float c, float w)
@@ -41,70 +62,59 @@ public class EcgGraphic : MaskableGraphic
 
     private void Update()
     {
-        if (_s == null || _s.Length != sampleCount) _s = new float[sampleCount];
-
         _acc += Time.unscaledDeltaTime * samplesPerSecond;
         int whole = Mathf.FloorToInt(_acc);
         _acc -= whole;
-        int steps = Mathf.Min(whole, sampleCount);
+        int steps = Mathf.Min(whole, W);
 
         float phaseStep = (Mathf.Max(bpm, 30f) / 60f) / samplesPerSecond;
         for (int k = 0; k < steps; k++)
         {
-            System.Array.Copy(_s, 1, _s, 0, _s.Length - 1);
+            System.Array.Copy(_s, 1, _s, 0, W - 1);
             _phase = (_phase + phaseStep) % 1f;
-            _s[_s.Length - 1] = Beat(_phase) + (Random.value - 0.5f) * 2f * noise;
+            _s[W - 1] = Beat(_phase) + (Random.value - 0.5f) * 2f * noise;
         }
 
-        SetVerticesDirty();
+        Draw();
     }
 
-    protected override void OnPopulateMesh(VertexHelper vh)
+    private void Draw()
     {
-        vh.Clear();
-        if (_s == null) return;
+        System.Array.Clear(_px, 0, _px.Length);
 
-        Rect r = GetPixelAdjustedRect();
-        int n = _s.Length;
+        float mid = H * 0.5f;
+        float amp = H * amplitude;
+        byte r = (byte)(Mathf.Clamp01(color.r) * 255f);
+        byte g = (byte)(Mathf.Clamp01(color.g) * 255f);
+        byte b = (byte)(Mathf.Clamp01(color.b) * 255f);
 
-        for (int pass = 0; pass < 2; pass++)
+        for (int x = 0; x < W; x++)
         {
-            float th = pass == 0 ? thickness * 3.2f : thickness;
-            float aMul = pass == 0 ? 0.22f : 1f;
+            float trail = Mathf.Pow((float)x / (W - 1), 1.5f);
+            if (trail < 0.02f) continue;
 
-            for (int i = 0; i < n - 1; i++)
+            float y1 = mid + _s[x] * amp;
+            float y0 = x > 0 ? mid + _s[x - 1] * amp : y1;
+            float lo = Mathf.Min(y0, y1);
+            float hi = Mathf.Max(y0, y1);
+
+            int from = Mathf.FloorToInt(lo) - 5;
+            int to = Mathf.CeilToInt(hi) + 5;
+            for (int y = from; y <= to; y++)
             {
-                float t0 = (float)i / (n - 1);
-                float t1 = (float)(i + 1) / (n - 1);
+                if (y < 0 || y >= H) continue;
 
-                Vector2 a = new Vector2(r.xMin + t0 * r.width, r.center.y + _s[i] * amplitude * r.height);
-                Vector2 b = new Vector2(r.xMin + t1 * r.width, r.center.y + _s[i + 1] * amplitude * r.height);
+                float d = y < lo ? lo - y : (y > hi ? y - hi : 0f);
+                float core = Mathf.Clamp01(1.7f - d);
+                float glow = Mathf.Clamp01(1f - d / 4.5f) * 0.28f;
+                float a = Mathf.Max(core, glow) * trail * color.a;
+                if (a <= 0.004f) continue;
 
-                Color c0 = color; c0.a *= Mathf.Pow(t0, 1.6f) * aMul;
-                Color c1 = color; c1.a *= Mathf.Pow(t1, 1.6f) * aMul;
-                if (c1.a < 0.01f) continue;
-
-                AddSegment(vh, a, b, th, c0, c1);
+                _px[y * W + x] = new Color32(r, g, b, (byte)(Mathf.Clamp01(a) * 255f));
             }
         }
-    }
 
-    private static void AddSegment(VertexHelper vh, Vector2 a, Vector2 b, float thick, Color c0, Color c1)
-    {
-        Vector2 dir = (b - a);
-        if (dir.sqrMagnitude < 0.0001f) dir = Vector2.right;
-        dir.Normalize();
-        Vector2 off = new Vector2(-dir.y, dir.x) * thick * 0.5f;
-
-        int idx = vh.currentVertCount;
-        UIVertex v = UIVertex.simpleVert;
-
-        v.color = c0; v.position = a - off; vh.AddVert(v);
-        v.color = c0; v.position = a + off; vh.AddVert(v);
-        v.color = c1; v.position = b + off; vh.AddVert(v);
-        v.color = c1; v.position = b - off; vh.AddVert(v);
-
-        vh.AddTriangle(idx, idx + 1, idx + 2);
-        vh.AddTriangle(idx, idx + 2, idx + 3);
+        _tex.SetPixels32(_px);
+        _tex.Apply(false);
     }
 }

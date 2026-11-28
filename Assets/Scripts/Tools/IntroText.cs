@@ -30,28 +30,29 @@ public class IntroText : MonoBehaviour
 
     public static bool IsFirstAttempt = true;
 
-    private void Start()
+  private void Start()
+{
+    if (!IsFirstAttempt)
     {
-        if (!IsFirstAttempt)
-        {
-            _transitionPanel.SetActive(false);
-            _player.enabled = true;
-            isIntro = false;
-            _ost.SetActive(true);
-            if (GameState.Day > 1) QuestManager.Instance.SkipInspection();   // осмотр комнаты не нужен
-            else QuestManager.Instance.Init(0);
-            return;
-        }
-        isIntro = true;
-        _isVisible = false;
-        _currentIndex = 0;
-        _hasPlayedFinalSound = false;
+        HideAllEntries();   // прячем панели интро, иначе они перекрывают UI на втором дне
 
-        HideAllEntries();
-
-        StartCoroutine(ShowFirstEntryWithDelay(1f));
+        _transitionPanel.SetActive(false);
+        _player.enabled = true;
+        isIntro = false;
+        _ost.SetActive(true);
+        if (GameState.Day > 1) QuestManager.Instance.SkipInspection();   // осмотр комнаты не нужен
+        else QuestManager.Instance.Init(0);
+        return;
     }
+    isIntro = true;
+    _isVisible = false;
+    _currentIndex = 0;
+    _hasPlayedFinalSound = false;
 
+    HideAllEntries();
+
+    StartCoroutine(ShowFirstEntryWithDelay(1f));
+}
 
     private IEnumerator ShowFirstEntryWithDelay(float delay)
     {

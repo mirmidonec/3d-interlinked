@@ -386,7 +386,7 @@ public class InterrogationUI : MonoBehaviour
         h.childControlWidth = true;
         h.childControlHeight = true;
         h.childForceExpandWidth = false;
-        h.childForceExpandHeight = true;
+        h.childForceExpandHeight = false;
         UiFx.Layout(rt.gameObject, minH: height, prefH: height);
         return rt;
     }
@@ -596,6 +596,7 @@ public class InterrogationUI : MonoBehaviour
         img.sprite = UiFx.Rounded(16);
         img.type = Image.Type.Sliced;
         img.color = Color.white;
+        img.raycastTarget = true;
 
         var btn = rt.gameObject.AddComponent<Button>();
         btn.targetGraphic = img;
@@ -608,27 +609,35 @@ public class InterrogationUI : MonoBehaviour
         btn.colors = c;
 
         var h = rt.gameObject.AddComponent<HorizontalLayoutGroup>();
-        h.padding = new RectOffset(18, 28, 14, 14);
-        h.spacing = 22f;
+        h.padding = new RectOffset(96, 30, 16, 16);
+        h.spacing = 0f;
         h.childAlignment = TextAnchor.MiddleLeft;
         h.childControlWidth = true;
         h.childControlHeight = true;
-        h.childForceExpandWidth = false;
+        h.childForceExpandWidth = true;
         h.childForceExpandHeight = false;
-        UiFx.Layout(rt.gameObject, minH: 84f);
+        UiFx.Layout(rt.gameObject, minH: 88f);
 
+        // ВАЖНО: Label создаётся ПЕРВЫМ. DialogueSystem подписывает кнопку через
+        // GetComponentInChildren<TMP_Text>(), и это обязан быть текст вопроса, а не цифра на значке.
+        TMP_Text label = UiFx.Text(rt, "Label", 28, TextAlignmentOptions.MidlineLeft, TextMain, font);
+        UiFx.Layout(label.gameObject, flexW: 1f, minH: 54f);
+
+        // Значок с цифрой не участвует в раскладке, стоит слева по центру.
         Image badge = UiFx.Img(rt, "Badge", UiFx.Rounded(12), new Color(Cyan.r, Cyan.g, Cyan.b, 0.18f), true);
-        UiFx.Layout(badge.gameObject, 54f, 54f, 54f, 54f);
+        UiFx.Layout(badge.gameObject).ignoreLayout = true;
+        RectTransform br = badge.rectTransform;
+        br.anchorMin = br.anchorMax = new Vector2(0f, 0.5f);
+        br.pivot = new Vector2(0f, 0.5f);
+        br.anchoredPosition = new Vector2(22f, 0f);
+        br.sizeDelta = new Vector2(54f, 54f);
+
         TMP_Text num = UiFx.Text(badge.transform, "Num", 30, TextAlignmentOptions.Center, Cyan, font);
         num.fontStyle = FontStyles.Bold;
         num.text = number.ToString();
         UiFx.Stretch(num.rectTransform);
 
-        TMP_Text label = UiFx.Text(rt, "Label", 28, TextAlignmentOptions.MidlineLeft, TextMain, font);
-        UiFx.Layout(label.gameObject, flexW: 1f, minH: 54f);
-
         rt.gameObject.AddComponent<UiButtonFx>();
-        img.raycastTarget = true;
         return btn;
     }
 

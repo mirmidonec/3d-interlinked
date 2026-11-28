@@ -16,6 +16,15 @@ public class UiButtonFx : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
     private void Awake()
     {
         _button = GetComponent<Button>();
+
+        // Кнопка, на которую кликнули, остаётся "выбранной" и перестаёт подсвечиваться при наведении.
+        // Отключаем навигацию/выбор, и подсветка работает всегда.
+        if (_button != null)
+        {
+            Navigation n = _button.navigation;
+            n.mode = Navigation.Mode.None;
+            _button.navigation = n;
+        }
     }
 
     private void OnEnable()
